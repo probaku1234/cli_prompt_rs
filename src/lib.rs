@@ -2,7 +2,7 @@
 //! to build CLI apps with nicely formatted output.
 //!
 //! # Example
-//! ```
+//! ```no_run
 //! use cli_prompts_rs::{CliPrompt, LogType, PromptSelectOption};
 //! use std::process::exit;
 //!
@@ -86,7 +86,7 @@ impl CliPrompt {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// use cli_prompts_rs::CliPrompt;
     ///
     /// let mut cli_prompt = cli_prompts_rs::CliPrompt::new();
@@ -105,7 +105,7 @@ impl CliPrompt {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// use cli_prompts_rs::CliPrompt;
     ///
     /// let cli_prompt = cli_prompts_rs::CliPrompt::new();
@@ -124,11 +124,11 @@ impl CliPrompt {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// use cli_prompts_rs::CliPrompt;
     /// use std::process::exit;
     ///
-    /// let cli_prompt = cli_prompts_rs::CliPrompt::new();
+    /// let mut cli_prompt = cli_prompts_rs::CliPrompt::new();
     /// let answer = cli_prompt.prompt_confirm("Are you sure?").unwrap();
     ///
     /// if !answer {
@@ -155,8 +155,8 @@ impl CliPrompt {
     ///
     /// # Examples
     ///
-    /// ```
-    /// use cli_prompts_rs::CliPrompt;
+    /// ```no_run
+    /// use cli_prompts_rs::{CliPrompt, LogType};
     ///
     /// let cli_prompt = cli_prompts_rs::CliPrompt::new();
     /// cli_prompt.log("example log message", LogType::Info).unwrap();
@@ -186,11 +186,11 @@ impl CliPrompt {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// use cli_prompts_rs::CliPrompt;
     ///
     /// let mut cli_prompt = cli_prompts_rs::CliPrompt::new();
-    /// let answer = cli_prompt.intro("example app").unwrap();
+    /// let answer = cli_prompt.prompt_text("example app").unwrap();
     /// println!("{}", answer);
     /// ```
     pub fn prompt_text(&mut self, message: &str) -> Result<String> {
@@ -211,7 +211,9 @@ impl CliPrompt {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
+    /// use cli_prompts_rs::CliPrompt;
+    ///
     /// let mut cli_prompt = cli_prompts_rs::CliPrompt::new();
     /// let answer = cli_prompt.prompt_confirm("Are you sure?").unwrap();
     /// println!("{}", answer);
@@ -254,7 +256,9 @@ impl CliPrompt {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
+    /// use cli_prompts_rs::{CliPrompt, PromptSelectOption};
+    ///
     /// let mut cli_prompt = cli_prompts_rs::CliPrompt::new();
     /// let options = vec![
     ///     PromptSelectOption::new("option1", "Pikachu"),
@@ -436,5 +440,25 @@ mod tests {
 
         assert_eq!(unicode_symbol, "c");
         assert_eq!(fallback_symbol, "fallback");
+    }
+
+    #[test]
+    fn test_format_prefix_question() {
+        let cli_prompt = CliPrompt::new();
+        let result = cli_prompt.format_prefix("test message".to_string(), MessageType::Question);
+
+        let unicode_support = supports_unicode::on(Stream::Stdout);
+        let prefix = get_symbol("◇", "o", unicode_support).magenta();
+        assert_eq!(result, format!("{} {}", prefix, "test message"));
+    }
+
+    #[test]
+    fn test_format_prefix_option() {
+        let cli_prompt = CliPrompt::new();
+        let result = cli_prompt.format_prefix("test message".to_string(), MessageType::Option);
+
+        let unicode_support = supports_unicode::on(Stream::Stdout);
+        let prefix = get_symbol("│", "|", unicode_support);
+        assert_eq!(result, format!("\r{} {}", prefix, "test message"));
     }
 }
