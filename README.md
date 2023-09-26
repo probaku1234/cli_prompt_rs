@@ -83,7 +83,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+[![Product Name Screen Shot][product-screenshot]](https://github.com/probaku1234/cli_prompt_rs/blob/main/examples/example1.rs)
 
 Inspired by [@clack/prompts](https://github.com/natemoo-re/clack),
 This library provides easy-to-use CLI prompt functions to help you build beautiful command-line-apps easily.
