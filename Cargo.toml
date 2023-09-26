@@ -2,6 +2,11 @@
 name = "cli_prompts_rs"
 version = "0.1.0"
 edition = "2021"
+description = "Easily build beautiful command-line apps"
+license = "MIT"
+repository = "https://github.com/probaku1234/cli_prompt_rs"
+readme = "README.md"
+authors = ["Yun Seob Lee <fhzotxldj@gmail.com>"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
