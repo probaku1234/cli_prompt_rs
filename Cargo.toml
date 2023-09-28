@@ -10,6 +10,9 @@ authors = ["Yun Seob Lee <fhzotxldj@gmail.com>"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+mock-term = []
+
 [dependencies]
 supports-unicode = "2.0.0"
 console = "0.15.7"
