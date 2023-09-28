@@ -579,6 +579,7 @@ mod my_own_socket {
     }
 }
 
+// #[cfg(feature = "mock-term")]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -803,5 +804,68 @@ mod tests {
         let result = cli_prompt.prompt_confirm("message").unwrap();
 
         assert_eq!(result, false);
+    }
+
+    #[test]
+    fn test_prompt_select_message() {
+        let prefix_map = build_prefix_map();
+        let mut cli_prompt = CliPrompt::new();
+        let options = vec![
+            PromptSelectOption::new("option1", "test option 1"),
+            PromptSelectOption::new("option2", "test option 2"),
+        ];
+        cli_prompt.prompt_select("message", options);
+
+        let output = cli_prompt.get_term_output();
+
+        assert_eq!(
+            format!(
+                "{} {}\n\
+                \r{} {} {}\n\
+                \r{} {} {}\n",
+                style(prefix_map.get("s_step_submit").unwrap()).magenta(),
+                "message",
+                prefix_map.get("s_bar").unwrap(),
+                style(prefix_map.get("s_radio_active").unwrap()).green(),
+                "test option 1",
+                prefix_map.get("s_bar").unwrap(),
+                prefix_map.get("s_radio_inactive").unwrap(),
+                "test option 2",
+            ),
+            String::from_utf8(output).unwrap()
+        );
+    }
+
+    #[test]
+    fn test_prompt_select_choose_option1() {
+        let prefix_map = build_prefix_map();
+        let mut cli_prompt = CliPrompt::new();
+        cli_prompt.push_key_input("enter");
+        let options = vec![
+            PromptSelectOption::new("option1", "test option 1"),
+            PromptSelectOption::new("option2", "test option 2"),
+        ];
+
+        let choice = cli_prompt.prompt_select("message", options).unwrap();
+
+        assert_eq!(String::from("option1"), choice.value);
+    }
+
+    #[test]
+    fn test_prompt_select_choose_option2() {
+        let prefix_map = build_prefix_map();
+        let mut cli_prompt = CliPrompt::new();
+
+        cli_prompt.push_key_input("arrow down");
+        cli_prompt.push_key_input("enter");
+
+        let options = vec![
+            PromptSelectOption::new("option1", "test option 1"),
+            PromptSelectOption::new("option2", "test option 2"),
+        ];
+
+        let choice = cli_prompt.prompt_select("message", options).unwrap();
+
+        assert_eq!(String::from("option2"), choice.value);
     }
 }
