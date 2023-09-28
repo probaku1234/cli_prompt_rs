@@ -35,7 +35,12 @@
 //! }
 //! ```
 use colored::*;
-use console::{style, Term};
+#[cfg(feature = "mock-term")]
+use console::style;
+#[cfg(not(feature = "mock-term"))]
+use console::{style, Key, Term};
+#[cfg(feature = "mock-term")]
+use my_own_socket::{Key, Term};
 use std::fmt;
 use std::io::{Result, Write};
 use supports_unicode::Stream;
@@ -92,7 +97,7 @@ impl CliPrompt {
     /// let mut cli_prompt = cli_prompts_rs::CliPrompt::new();
     /// cli_prompt.intro("example app").unwrap();
     /// ```
-    pub fn intro(&self, message: &str) -> Result<()> {
+    pub fn intro(&mut self, message: &str) -> Result<()> {
         self.term
             .write_line(format!("{} {}", self.s_bar_start, message).as_str())?;
 
@@ -108,10 +113,10 @@ impl CliPrompt {
     /// ```no_run
     /// use cli_prompts_rs::CliPrompt;
     ///
-    /// let cli_prompt = cli_prompts_rs::CliPrompt::new();
+    /// let mut cli_prompt = cli_prompts_rs::CliPrompt::new();
     /// cli_prompt.outro("example app").unwrap();
     /// ```
-    pub fn outro(&self, message: &str) -> Result<()> {
+    pub fn outro(&mut self, message: &str) -> Result<()> {
         self.term
             .write_line(format!("{} {}", self.s_bar_end, message).as_str())?;
 
@@ -136,9 +141,7 @@ impl CliPrompt {
     ///     exit(0);
     /// }
     /// ```
-    pub fn cancel(&self, message: &str) -> Result<()> {
-        // self.term
-        //     .write_line(format!("{} {}", self.s_bar_end, message.red()).as_str())?;
+    pub fn cancel(&mut self, message: &str) -> Result<()> {
         self.term
             .write_line(format!("{} {}", self.s_bar_end, style(message).red()).as_str())?;
         Ok(())
@@ -158,10 +161,10 @@ impl CliPrompt {
     /// ```no_run
     /// use cli_prompts_rs::{CliPrompt, LogType};
     ///
-    /// let cli_prompt = cli_prompts_rs::CliPrompt::new();
+    /// let mut cli_prompt = cli_prompts_rs::CliPrompt::new();
     /// cli_prompt.log("example log message", LogType::Info).unwrap();
     /// ```
-    pub fn log(&self, message: &str, log_type: LogType) -> Result<()> {
+    pub fn log(&mut self, message: &str, log_type: LogType) -> Result<()> {
         match log_type {
             LogType::Info => {
                 self.term
@@ -228,17 +231,17 @@ impl CliPrompt {
         loop {
             let key = self.term.read_key()?;
 
-            if key.eq(&console::Key::ArrowLeft) {
+            if key.eq(&Key::ArrowLeft) {
                 self.print_confirm_message(true)?;
                 self.term.flush()?;
                 choice = 1;
             }
-            if key.eq(&console::Key::ArrowRight) {
+            if key.eq(&Key::ArrowRight) {
                 self.print_confirm_message(false)?;
                 self.term.flush()?;
                 choice = 0;
             }
-            if key.eq(&console::Key::Enter) {
+            if key.eq(&Key::Enter) {
                 self.term.show_cursor()?;
                 self.term.write_line("")?;
                 break;
@@ -269,7 +272,7 @@ impl CliPrompt {
     /// println!("{}", selected_option);
     /// ```
     pub fn prompt_select(
-        &self,
+        &mut self,
         message: &str,
         options: Vec<PromptSelectOption>,
     ) -> Result<PromptSelectOption> {
@@ -298,7 +301,7 @@ impl CliPrompt {
         loop {
             let key = self.term.read_key()?;
 
-            if key.eq(&console::Key::ArrowUp) {
+            if key.eq(&Key::ArrowUp) {
                 if choice == 0 {
                     choice = options_num - 1;
                 } else {
@@ -309,14 +312,14 @@ impl CliPrompt {
                 self.term.flush()?;
                 self.term.move_cursor_up(options_num)?;
             }
-            if key.eq(&console::Key::ArrowDown) {
+            if key.eq(&Key::ArrowDown) {
                 choice = (choice + 1) % options_num;
 
                 self.print_options(&options, choice)?;
                 self.term.flush()?;
                 self.term.move_cursor_up(options_num)?;
             }
-            if key.eq(&console::Key::Enter) {
+            if key.eq(&Key::Enter) {
                 self.term.move_cursor_down(options_num)?;
                 self.term.show_cursor()?;
 
@@ -366,7 +369,7 @@ impl CliPrompt {
     }
 
     fn print_options(
-        &self,
+        &mut self,
         options: &Vec<PromptSelectOption>,
         current_choice: usize,
     ) -> Result<()> {
@@ -388,6 +391,31 @@ impl CliPrompt {
 
         Ok(())
     }
+
+    #[cfg(feature = "mock-term")]
+    fn get_term_input(&self) -> Vec<u8> {
+        self.term.get_input()
+    }
+
+    #[cfg(feature = "mock-term")]
+    fn get_term_output(&self) -> Vec<u8> {
+        self.term.get_output()
+    }
+
+    #[cfg(feature = "mock-term")]
+    fn set_term_input(&mut self, input: &str) {
+        self.term.input = input.to_string().into_bytes();
+    }
+
+    #[cfg(feature = "mock-term")]
+    fn clear_term_output(&mut self) {
+        self.term.output.clear();
+    }
+
+    #[cfg(feature = "mock-term")]
+    fn push_key_input(&mut self, key: &str) {
+        self.term.key_input.push_back(key.to_string());
+    }
 }
 
 enum MessageType {
@@ -395,7 +423,7 @@ enum MessageType {
     Option,
 }
 
-/// Use to indicate the type of log
+/// Use to indicate the type of log for [`CliPrompt::log()`]
 ///
 /// # Support Types
 /// - Info
@@ -429,9 +457,165 @@ impl fmt::Display for PromptSelectOption {
     }
 }
 
+mod my_own_socket {
+    use std::collections::VecDeque;
+    use std::io::Write;
+
+    pub struct Term {
+        pub input: Vec<u8>,
+        pub output: Vec<u8>,
+        pub key_input: VecDeque<String>,
+    }
+
+    #[allow(dead_code)]
+    impl Term {
+        pub fn stdout() -> Self {
+            Self {
+                input: vec![],
+                output: vec![],
+                key_input: VecDeque::new(),
+            }
+        }
+
+        pub fn write_line(&mut self, s: &str) -> Result<(), std::io::Error> {
+            // match self.input {
+            //     Some(u8) => {
+            //         self.output = s.to_string().into_bytes();
+            //         self.output.push(b'\n');
+            //     }
+            //     None => stdout().write_all(s.as_bytes()),
+            // }
+            // self.output.clear();
+            self.output.append(&mut s.to_string().into_bytes());
+            // self.output = s.to_string().into_bytes();
+            self.output.push(b'\n');
+
+            Ok(())
+        }
+
+        pub fn get_input(&self) -> Vec<u8> {
+            self.input.clone()
+        }
+
+        pub fn get_output(&self) -> Vec<u8> {
+            self.output.clone()
+        }
+
+        pub fn show_cursor(&self) -> Result<(), std::io::Error> {
+            Ok(())
+        }
+
+        pub fn hide_cursor(&self) -> Result<(), std::io::Error> {
+            Ok(())
+        }
+
+        pub fn read_key(&mut self) -> Result<Key, std::io::Error> {
+            let input_key_option = self.key_input.pop_front();
+
+            if input_key_option.is_none() {
+                return Ok(Key::Enter);
+            }
+
+            match input_key_option.unwrap().as_str() {
+                "arrow left" => Ok(Key::ArrowLeft),
+                "arrow right" => Ok(Key::ArrowRight),
+                "arrow down" => Ok(Key::ArrowDown),
+                "arrow up" => Ok(Key::ArrowUp),
+                "enter" => Ok(Key::Enter),
+                _ => Ok(Key::Unknown),
+            }
+        }
+
+        pub fn read_line(&self) -> Result<String, std::io::Error> {
+            Ok(String::from_utf8(self.input.clone()).unwrap())
+        }
+
+        pub fn move_cursor_down(&self, _: usize) -> Result<(), std::io::Error> {
+            Ok(())
+        }
+
+        pub fn move_cursor_up(&self, _: usize) -> Result<(), std::io::Error> {
+            Ok(())
+        }
+    }
+
+    impl Write for Term {
+        fn write(&mut self, buf: &[u8]) -> Result<usize, std::io::Error> {
+            // self.output = buf.to_vec();
+            self.output.append(&mut buf.to_vec());
+
+            Ok(buf.len())
+        }
+
+        fn flush(&mut self) -> Result<(), std::io::Error> {
+            Ok(())
+        }
+    }
+
+    #[allow(dead_code)]
+    #[derive(PartialEq, Eq, Hash)]
+    pub enum Key {
+        Unknown,
+        /// Unrecognized sequence containing Esc and a list of chars
+        UnknownEscSeq(Vec<char>),
+        ArrowLeft,
+        ArrowRight,
+        ArrowUp,
+        ArrowDown,
+        Enter,
+        Escape,
+        Backspace,
+        Home,
+        End,
+        Tab,
+        BackTab,
+        Alt,
+        Del,
+        Shift,
+        Insert,
+        PageUp,
+        PageDown,
+        Char(char),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashMap;
+    // use assert_cmd::Command;
+
+    fn build_prefix_map() -> HashMap<String, String> {
+        let unicode_support = supports_unicode::on(Stream::Stdout);
+        let mut prefix_map = HashMap::new();
+
+        prefix_map.insert(
+            "s_bar_start".to_owned(),
+            get_symbol("┌", "T", unicode_support),
+        );
+        prefix_map.insert("s_bar".to_owned(), get_symbol("│", "|", unicode_support));
+        prefix_map.insert(
+            "s_bar_end".to_owned(),
+            get_symbol("└", "—", unicode_support),
+        );
+        prefix_map.insert(
+            "s_radio_active".to_owned(),
+            get_symbol("●", ">", unicode_support),
+        );
+        prefix_map.insert(
+            "s_radio_inactive".to_owned(),
+            get_symbol("○", " ", unicode_support),
+        );
+        prefix_map.insert(
+            "s_step_submit".to_owned(),
+            get_symbol("◇", "o", unicode_support),
+        );
+        prefix_map.insert("s_info".to_owned(), get_symbol("●", "•", unicode_support));
+        prefix_map.insert("s_warn".to_owned(), get_symbol("▲", "!", unicode_support));
+        prefix_map.insert("s_error".to_owned(), get_symbol("■", "x", unicode_support));
+
+        prefix_map
+    }
 
     #[test]
     fn test_get_symbol_works() {
@@ -460,5 +644,164 @@ mod tests {
         let unicode_support = supports_unicode::on(Stream::Stdout);
         let prefix = get_symbol("│", "|", unicode_support);
         assert_eq!(result, format!("\r{} {}", prefix, "test message"));
+    }
+
+    #[test]
+    fn test_intro() {
+        let mut cli_prompt = CliPrompt::new();
+        cli_prompt.intro("message");
+
+        let output = cli_prompt.get_term_output();
+        let prefix_map = build_prefix_map();
+
+        assert_eq!(
+            format!("{} message\n", prefix_map.get("s_bar_start").unwrap()),
+            String::from_utf8(output).unwrap()
+        );
+    }
+
+    #[test]
+    fn test_outro() {
+        let mut cli_prompt = CliPrompt::new();
+        cli_prompt.outro("message");
+
+        let output = cli_prompt.get_term_output();
+        let prefix_map = build_prefix_map();
+
+        assert_eq!(
+            format!("{} message\n", prefix_map.get("s_bar_end").unwrap()),
+            String::from_utf8(output).unwrap()
+        );
+    }
+
+    #[test]
+    fn test_cancel() {
+        let mut cli_prompt = CliPrompt::new();
+        cli_prompt.cancel("message");
+
+        let output = cli_prompt.get_term_output();
+        let prefix_map = build_prefix_map();
+
+        assert_eq!(
+            format!(
+                "{} {}\n",
+                prefix_map.get("s_bar_end").unwrap(),
+                style("message").red()
+            ),
+            String::from_utf8(output).unwrap()
+        );
+    }
+
+    #[test]
+    fn test_log() {
+        let prefix_map = build_prefix_map();
+
+        let mut cli_prompt = CliPrompt::new();
+        cli_prompt.log("message", LogType::Info);
+
+        let mut output = cli_prompt.get_term_output();
+
+        assert_eq!(
+            format!(
+                "{} {}\n",
+                style(prefix_map.get("s_info").unwrap()).blue(),
+                "message"
+            ),
+            String::from_utf8(output).unwrap()
+        );
+
+        cli_prompt.clear_term_output();
+        cli_prompt.log("message", LogType::Warn);
+        output = cli_prompt.get_term_output();
+
+        assert_eq!(
+            format!(
+                "{} {}\n",
+                style(prefix_map.get("s_warn").unwrap()).yellow(),
+                style("message").yellow()
+            ),
+            String::from_utf8(output).unwrap()
+        );
+
+        cli_prompt.clear_term_output();
+        cli_prompt.log("message", LogType::Error);
+        output = cli_prompt.get_term_output();
+
+        assert_eq!(
+            format!(
+                "{} {}\n",
+                style(prefix_map.get("s_error").unwrap()).red(),
+                style("message").red()
+            ),
+            String::from_utf8(output).unwrap()
+        );
+    }
+
+    #[test]
+    fn test_prompt_text() {
+        let prefix_map = build_prefix_map();
+
+        let mut cli_prompt = CliPrompt::new();
+
+        cli_prompt.set_term_input("my name");
+
+        let result = cli_prompt.prompt_text("name?").unwrap();
+
+        let output = cli_prompt.get_term_output();
+
+        assert_eq!(
+            format!(
+                "{} name?\n{} ",
+                style(prefix_map.get("s_step_submit").unwrap()).magenta(),
+                prefix_map.get("s_bar").unwrap()
+            ),
+            String::from_utf8(output).unwrap()
+        );
+        assert_eq!(result, "my name".to_string());
+    }
+
+    #[test]
+    fn test_prompt_confirm_message() {
+        let prefix_map = build_prefix_map();
+
+        let mut cli_prompt = CliPrompt::new();
+        // cli_prompt.push_key_input("enter");
+
+        cli_prompt.prompt_confirm("message").unwrap();
+
+        let output = cli_prompt.get_term_output();
+
+        assert_eq!(
+            format!(
+                "{} {}\n\r{} {} Yes / {} No\n",
+                style(prefix_map.get("s_step_submit").unwrap()).magenta(),
+                "message",
+                prefix_map.get("s_bar").unwrap(),
+                style(prefix_map.get("s_radio_active").unwrap()).green(),
+                prefix_map.get("s_radio_inactive").unwrap()
+            ),
+            String::from_utf8(output).unwrap()
+        );
+    }
+
+    #[test]
+    fn test_prompt_confirm_yes() {
+        let mut cli_prompt = CliPrompt::new();
+        cli_prompt.push_key_input("enter");
+
+        let result = cli_prompt.prompt_confirm("message").unwrap();
+
+        assert_eq!(result, true);
+    }
+
+    #[test]
+    fn test_prompt_confirm_no() {
+        let mut cli_prompt = CliPrompt::new();
+        cli_prompt.push_key_input("arrow right");
+        cli_prompt.push_key_input("enter");
+
+        let result = cli_prompt.prompt_confirm("message").unwrap();
+
+        assert_eq!(result, false);
     }
 }
