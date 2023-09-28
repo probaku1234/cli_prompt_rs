@@ -478,16 +478,7 @@ mod my_own_socket {
         }
 
         pub fn write_line(&mut self, s: &str) -> Result<(), std::io::Error> {
-            // match self.input {
-            //     Some(u8) => {
-            //         self.output = s.to_string().into_bytes();
-            //         self.output.push(b'\n');
-            //     }
-            //     None => stdout().write_all(s.as_bytes()),
-            // }
-            // self.output.clear();
             self.output.append(&mut s.to_string().into_bytes());
-            // self.output = s.to_string().into_bytes();
             self.output.push(b'\n');
 
             Ok(())
@@ -541,7 +532,6 @@ mod my_own_socket {
 
     impl Write for Term {
         fn write(&mut self, buf: &[u8]) -> Result<usize, std::io::Error> {
-            // self.output = buf.to_vec();
             self.output.append(&mut buf.to_vec());
 
             Ok(buf.len())
@@ -584,7 +574,6 @@ mod my_own_socket {
 mod tests {
     use super::*;
     use std::collections::HashMap;
-    // use assert_cmd::Command;
 
     fn build_prefix_map() -> HashMap<String, String> {
         let unicode_support = supports_unicode::on(Stream::Stdout);
@@ -766,7 +755,6 @@ mod tests {
         let prefix_map = build_prefix_map();
 
         let mut cli_prompt = CliPrompt::new();
-        // cli_prompt.push_key_input("enter");
 
         cli_prompt.prompt_confirm("message").unwrap();
 
