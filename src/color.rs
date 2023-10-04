@@ -94,6 +94,7 @@ mod tests {
         println!("{}", red(String::from(toto)));
         println!("{}", blue(toto).italic());
 
-        assert!(false)
+        // uncomment to see result output
+        // assert!(false)
     }
 }
