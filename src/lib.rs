@@ -34,6 +34,8 @@
 //!     cli_prompt.outro("Good Bye").unwrap();
 //! }
 //! ```
+pub mod color;
+
 use colored::*;
 #[cfg(feature = "mock-term")]
 use console::style;
