@@ -1,6 +1,6 @@
 //! Collection of functions to style text on terminal.
 //! Functions with postfix "_bg" change the background color
-//! 
+//!
 //! # Example
 //! ```no_run
 //! use cli_prompts_rs::color::*;
