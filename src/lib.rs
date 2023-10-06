@@ -400,26 +400,31 @@ impl CliPrompt {
         Ok(())
     }
 
+    #[allow(dead_code)]
     #[cfg(feature = "mock-term")]
     fn get_term_input(&self) -> Vec<u8> {
         self.term.get_input()
     }
 
+    #[allow(dead_code)]
     #[cfg(feature = "mock-term")]
     fn get_term_output(&self) -> Vec<u8> {
         self.term.get_output()
     }
 
+    #[allow(dead_code)]
     #[cfg(feature = "mock-term")]
     fn set_term_input(&mut self, input: &str) {
         self.term.input = input.to_string().into_bytes();
     }
 
+    #[allow(dead_code)]
     #[cfg(feature = "mock-term")]
     fn clear_term_output(&mut self) {
         self.term.output.clear();
     }
 
+    #[allow(dead_code)]
     #[cfg(feature = "mock-term")]
     fn push_key_input(&mut self, key: &str) {
         self.term.key_input.push_back(key.to_string());
@@ -647,7 +652,7 @@ mod tests {
     #[test]
     fn test_intro() {
         let mut cli_prompt = CliPrompt::new();
-        cli_prompt.intro("message");
+        cli_prompt.intro("message").unwrap();
 
         let output = cli_prompt.get_term_output();
         let prefix_map = build_prefix_map();
@@ -661,7 +666,7 @@ mod tests {
     #[test]
     fn test_outro() {
         let mut cli_prompt = CliPrompt::new();
-        cli_prompt.outro("message");
+        cli_prompt.outro("message").unwrap();
 
         let output = cli_prompt.get_term_output();
         let prefix_map = build_prefix_map();
@@ -675,7 +680,7 @@ mod tests {
     #[test]
     fn test_cancel() {
         let mut cli_prompt = CliPrompt::new();
-        cli_prompt.cancel("message");
+        cli_prompt.cancel("message").unwrap();
 
         let output = cli_prompt.get_term_output();
         let prefix_map = build_prefix_map();
@@ -695,7 +700,7 @@ mod tests {
         let prefix_map = build_prefix_map();
 
         let mut cli_prompt = CliPrompt::new();
-        cli_prompt.log("message", LogType::Info);
+        cli_prompt.log("message", LogType::Info).unwrap();
 
         let mut output = cli_prompt.get_term_output();
 
@@ -709,7 +714,7 @@ mod tests {
         );
 
         cli_prompt.clear_term_output();
-        cli_prompt.log("message", LogType::Warn);
+        cli_prompt.log("message", LogType::Warn).unwrap();
         output = cli_prompt.get_term_output();
 
         assert_eq!(
@@ -722,7 +727,7 @@ mod tests {
         );
 
         cli_prompt.clear_term_output();
-        cli_prompt.log("message", LogType::Error);
+        cli_prompt.log("message", LogType::Error).unwrap();
         output = cli_prompt.get_term_output();
 
         assert_eq!(
@@ -810,7 +815,7 @@ mod tests {
             PromptSelectOption::new("option1", "test option 1"),
             PromptSelectOption::new("option2", "test option 2"),
         ];
-        cli_prompt.prompt_select("message", options);
+        cli_prompt.prompt_select("message", options).unwrap();
 
         let output = cli_prompt.get_term_output();
 
@@ -834,7 +839,6 @@ mod tests {
 
     #[test]
     fn test_prompt_select_choose_option1() {
-        let prefix_map = build_prefix_map();
         let mut cli_prompt = CliPrompt::new();
         cli_prompt.push_key_input("enter");
         let options = vec![
@@ -849,7 +853,6 @@ mod tests {
 
     #[test]
     fn test_prompt_select_choose_option2() {
-        let prefix_map = build_prefix_map();
         let mut cli_prompt = CliPrompt::new();
 
         cli_prompt.push_key_input("arrow down");
