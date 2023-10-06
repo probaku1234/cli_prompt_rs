@@ -233,20 +233,23 @@ impl CliPrompt {
         loop {
             let key = self.term.read_key()?;
 
-            if key.eq(&Key::ArrowLeft) {
-                self.print_confirm_message(true)?;
-                self.term.flush()?;
-                choice = 1;
-            }
-            if key.eq(&Key::ArrowRight) {
-                self.print_confirm_message(false)?;
-                self.term.flush()?;
-                choice = 0;
-            }
-            if key.eq(&Key::Enter) {
-                self.term.show_cursor()?;
-                self.term.write_line("")?;
-                break;
+            match key {
+                Key::ArrowLeft => {
+                    self.print_confirm_message(true)?;
+                    self.term.flush()?;
+                    choice = 1;
+                }
+                Key::ArrowRight => {
+                    self.print_confirm_message(false)?;
+                    self.term.flush()?;
+                    choice = 0;
+                }
+                Key::Enter => {
+                    self.term.show_cursor()?;
+                    self.term.write_line("")?;
+                    break;
+                }
+                _ => {}
             }
         }
 
@@ -268,7 +271,7 @@ impl CliPrompt {
     /// let options = vec![
     ///     PromptSelectOption::new("option1", "Pikachu"),
     ///     PromptSelectOption::new("option2", "Charmander"),
-    //      PromptSelectOption::new("option3", "Squirtle"),
+    ///      PromptSelectOption::new("option3", "Squirtle"),
     /// ];
     /// let selected_option = cli_prompt.prompt_select("Which one do you prefer?", options).unwrap();
     /// println!("{}", selected_option);
@@ -303,41 +306,44 @@ impl CliPrompt {
         loop {
             let key = self.term.read_key()?;
 
-            if key.eq(&Key::ArrowUp) {
-                if choice == 0 {
-                    choice = options_num - 1;
-                } else {
-                    choice -= 1;
+            match key {
+                Key::ArrowUp => {
+                    choice = if choice == 0 {
+                        options_num - 1
+                    } else {
+                        choice - 1
+                    };
+
+                    self.print_options(&options, choice)?;
+                    self.term.flush()?;
+                    self.term.move_cursor_up(options_num)?;
                 }
+                Key::ArrowDown => {
+                    choice = (choice + 1) % options_num;
 
-                self.print_options(&options, choice)?;
-                self.term.flush()?;
-                self.term.move_cursor_up(options_num)?;
-            }
-            if key.eq(&Key::ArrowDown) {
-                choice = (choice + 1) % options_num;
+                    self.print_options(&options, choice)?;
+                    self.term.flush()?;
+                    self.term.move_cursor_up(options_num)?;
+                }
+                Key::Enter => {
+                    self.term.move_cursor_down(options_num)?;
+                    self.term.show_cursor()?;
 
-                self.print_options(&options, choice)?;
-                self.term.flush()?;
-                self.term.move_cursor_up(options_num)?;
-            }
-            if key.eq(&Key::Enter) {
-                self.term.move_cursor_down(options_num)?;
-                self.term.show_cursor()?;
-
-                break;
+                    break;
+                }
+                _ => {}
             }
         }
         Ok(options.get(choice).unwrap().clone())
     }
 
     fn format_prefix(&self, message: String, message_type: MessageType) -> String {
-        match message_type {
+        return match message_type {
             MessageType::Question => {
-                return format!("{} {}", self.s_step_submit.magenta(), message)
+                format!("{} {}", self.s_step_submit.magenta(), message)
             }
-            MessageType::Option => return format!("\r{} {}", self.s_bar, message),
-        }
+            MessageType::Option => format!("\r{} {}", self.s_bar, message),
+        };
     }
 
     fn print_confirm_message(&mut self, is_yes: bool) -> Result<()> {
@@ -351,7 +357,7 @@ impl CliPrompt {
                     ),
                     MessageType::Option,
                 )
-                .as_bytes(),
+                    .as_bytes(),
             )?;
         } else {
             self.term.write(
@@ -363,7 +369,7 @@ impl CliPrompt {
                     ),
                     MessageType::Option,
                 )
-                .as_bytes(),
+                    .as_bytes(),
             )?;
         }
 
