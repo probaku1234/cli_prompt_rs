@@ -52,7 +52,7 @@ fn get_symbol(c: &str, fallback: &str, unicode_support: bool) -> String {
         c.to_string()
     } else {
         fallback.to_string()
-    }
+    };
 }
 
 pub struct CliPrompt {
@@ -357,7 +357,7 @@ impl CliPrompt {
                     ),
                     MessageType::Option,
                 )
-                    .as_bytes(),
+                .as_bytes(),
             )?;
         } else {
             self.term.write(
@@ -369,7 +369,7 @@ impl CliPrompt {
                     ),
                     MessageType::Option,
                 )
-                    .as_bytes(),
+                .as_bytes(),
             )?;
         }
 
