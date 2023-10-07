@@ -39,7 +39,7 @@
   <p align="center">
     Easily build beautiful command-line apps
     <br />
-    <a href="https://github.com/probaku1234/cli_prompt_rs"><strong>Explore the docs »</strong></a>
+    <a href="https://docs.rs/cli_prompts_rs/0.1.0/cli_prompts_rs/"><strong>Explore the docs »</strong></a>
     <br />
     <br />
     <a href="https://github.com/probaku1234/cli_prompt_rs/blob/main/examples/example1.rs">View Demo</a>
