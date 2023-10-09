@@ -59,6 +59,7 @@ pub struct CliPrompt {
     term: Term,
     s_bar_start: String,
     s_bar: String,
+    s_bar_h: String,
     s_bar_end: String,
     s_radio_active: String,
     s_radio_inactive: String,
@@ -67,6 +68,9 @@ pub struct CliPrompt {
     // s_success: String,
     s_warn: String,
     s_error: String,
+    s_corner_top_right: String,
+    s_corner_bottom_right: String,
+    s_connect_left: String,
 }
 
 impl CliPrompt {
@@ -76,6 +80,7 @@ impl CliPrompt {
             term: Term::stdout(),
             s_bar_start: get_symbol("┌", "T", unicode_support),
             s_bar: get_symbol("│", "|", unicode_support),
+            s_bar_h: get_symbol("─", "-", unicode_support),
             s_bar_end: get_symbol("└", "—", unicode_support),
             s_radio_active: get_symbol("●", ">", unicode_support),
             s_radio_inactive: get_symbol("○", " ", unicode_support),
@@ -84,6 +89,9 @@ impl CliPrompt {
             // s_success: get_symbol("◆", "*", unicode_support),
             s_warn: get_symbol("▲", "!", unicode_support),
             s_error: get_symbol("■", "x", unicode_support),
+            s_corner_top_right: get_symbol("╮", "+", unicode_support),
+            s_corner_bottom_right: get_symbol("╯", "+", unicode_support),
+            s_connect_left: get_symbol("├", "+", unicode_support),
         }
     }
 
@@ -342,6 +350,72 @@ impl CliPrompt {
         Ok(options.get(choice).unwrap().clone())
     }
 
+    /// Prints message wrapped by a box.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use cli_prompts_rs::CliPrompt;
+    ///
+    /// let mut cli_prompt = CliPrompt::new();
+    /// cli_prompt.print_note("example note").unwrap();
+    ///
+    /// let note_message = r#"
+    /// Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    /// Sed vel dui sit amet nibh accumsan imperdiet quis sed nibh.
+    /// Cras commodo nisl in eros tincidunt sodales.
+    /// "#;
+    /// cli_prompt.print_note(note_message).unwrap();
+    /// ```
+    pub fn print_note(&mut self, note_message: &str) -> Result<()> {
+        // split message by \n
+        let split_message = note_message.split("\n");
+        // get max length of split messages
+        let mut max_length = 0;
+        for message in split_message {
+            let message_length = message.len();
+            if message_length > max_length {
+                max_length = message_length;
+            }
+        }
+        // print header
+        self.term.write_line(
+            format!(
+                "{}{}{}",
+                self.s_connect_left,
+                self.s_bar_h.repeat(max_length + 2),
+                self.s_corner_top_right
+            )
+            .as_str(),
+        )?;
+        // print message
+        for message in note_message.split("\n") {
+            let message_length = message.len();
+            self.term.write_line(
+                format!(
+                    "{} {}{}{}",
+                    self.s_bar,
+                    message,
+                    " ".repeat(max_length - message_length + 1),
+                    self.s_bar
+                )
+                .as_str(),
+            )?;
+        }
+
+        // print footer
+        self.term.write_line(
+            format!(
+                "{}{}{}",
+                self.s_connect_left,
+                self.s_bar_h.repeat(max_length + 2),
+                self.s_corner_bottom_right
+            )
+            .as_str(),
+        )?;
+
+        self.print_empty_line()
+    }
     fn format_prefix(&self, message: String, message_type: MessageType) -> String {
         return match message_type {
             MessageType::Question => {
@@ -625,6 +699,19 @@ mod tests {
         prefix_map.insert("s_info".to_owned(), get_symbol("●", "•", unicode_support));
         prefix_map.insert("s_warn".to_owned(), get_symbol("▲", "!", unicode_support));
         prefix_map.insert("s_error".to_owned(), get_symbol("■", "x", unicode_support));
+        prefix_map.insert("s_bar_h".to_owned(), get_symbol("─", "-", unicode_support));
+        prefix_map.insert(
+            "s_corner_top_right".to_owned(),
+            get_symbol("╮", "+", unicode_support),
+        );
+        prefix_map.insert(
+            "s_corner_bottom_right".to_owned(),
+            get_symbol("╯", "+", unicode_support),
+        );
+        prefix_map.insert(
+            "s_connect_left".to_owned(),
+            get_symbol("├", "+", unicode_support),
+        );
 
         prefix_map
     }
@@ -886,5 +973,43 @@ mod tests {
         let choice = cli_prompt.prompt_select("message", options).unwrap();
 
         assert_eq!(String::from("option2"), choice.value);
+    }
+
+    #[test]
+    fn test_print_note() {
+        let prefix_map = build_prefix_map();
+        let first_line = "hello";
+        let second_line = "rust";
+
+        let mut cli_prompt = CliPrompt::new();
+        cli_prompt
+            .print_note(format!("{}\n{}", first_line, second_line).as_str())
+            .unwrap();
+
+        let output = cli_prompt.get_term_output();
+
+        assert_eq!(
+            format!(
+                "{}{}{}\n{} {} {}\n{} {}{}{}\n{}{}{}\n{}\n",
+                prefix_map.get("s_connect_left").unwrap(),
+                prefix_map
+                    .get("s_bar_h")
+                    .unwrap()
+                    .repeat(first_line.len() + 2),
+                prefix_map.get("s_corner_top_right").unwrap(),
+                prefix_map.get("s_bar").unwrap(),
+                first_line,
+                prefix_map.get("s_bar").unwrap(),
+                prefix_map.get("s_bar").unwrap(),
+                second_line,
+                " ".repeat(first_line.len() - second_line.len() + 1),
+                prefix_map.get("s_bar").unwrap(),
+                prefix_map.get("s_connect_left").unwrap(),
+                prefix_map.get("s_bar_h").unwrap().repeat(7),
+                prefix_map.get("s_corner_bottom_right").unwrap(),
+                prefix_map.get("s_bar").unwrap(),
+            ),
+            String::from_utf8(output).unwrap()
+        );
     }
 }
