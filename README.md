@@ -39,7 +39,7 @@
   <p align="center">
     Easily build beautiful command-line apps
     <br />
-    <a href="https://docs.rs/cli_prompts_rs/0.1.0/cli_prompts_rs/"><strong>Explore the docs »</strong></a>
+    <a href="https://docs.rs/cli_prompts_rs/latest/cli_prompts_rs/"><strong>Explore the docs »</strong></a>
     <br />
     <br />
     <a href="https://github.com/probaku1234/cli_prompt_rs/blob/main/examples/example1.rs">View Demo</a>
@@ -129,7 +129,7 @@ Run the following Cargo command in your project directory:
    ```
 Or add the following line to your Cargo.toml:
   ```sh
-  cli_prompts_rs = "0.1"
+  cli_prompts_rs = "0.1.0"
   ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -139,7 +139,7 @@ Or add the following line to your Cargo.toml:
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+Here is basic example.
 
 ```rust
  use cli_prompts_rs::{CliPrompt, LogType, PromptSelectOption};
@@ -174,7 +174,7 @@ Use this space to show useful examples of how a project can be used. Additional 
  }
 ```
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+_For more examples, please refer to the [Documentation](https://docs.rs/cli_prompts_rs/latest/cli_prompts_rs/)_
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -208,6 +208,7 @@ Don't forget to give the project a star! Thanks again!
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
+This project uses [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) to automating publish process.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
@@ -235,9 +236,7 @@ Project Link: [https://github.com/probaku1234/cli_prompt_rs](https://github.com/
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 
-* []()
-* []()
-* []()
+* [@clack/prompts](https://github.com/natemoo-re/clack)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
