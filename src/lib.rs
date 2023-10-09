@@ -102,6 +102,7 @@ impl CliPrompt {
     pub fn intro(&mut self, message: &str) -> Result<()> {
         self.term
             .write_line(format!("{} {}", self.s_bar_start, message).as_str())?;
+        self.print_empty_line()?;
 
         Ok(())
     }
@@ -181,6 +182,7 @@ impl CliPrompt {
                     .write_line(&format!("{} {}", self.s_error.red(), message.red()))?
             }
         }
+        self.print_empty_line()?;
 
         Ok(())
     }
@@ -204,6 +206,7 @@ impl CliPrompt {
         self.term.write(format!("{} ", self.s_bar).as_bytes())?;
 
         let line = self.term.read_line().unwrap();
+        self.print_empty_line()?;
 
         Ok(line.trim().to_string())
     }
@@ -247,6 +250,7 @@ impl CliPrompt {
                 Key::Enter => {
                     self.term.show_cursor()?;
                     self.term.write_line("")?;
+                    self.print_empty_line()?;
                     break;
                 }
                 _ => {}
@@ -328,6 +332,7 @@ impl CliPrompt {
                 Key::Enter => {
                     self.term.move_cursor_down(options_num)?;
                     self.term.show_cursor()?;
+                    self.print_empty_line()?;
 
                     break;
                 }
@@ -398,6 +403,10 @@ impl CliPrompt {
         }
 
         Ok(())
+    }
+
+    fn print_empty_line(&mut self) -> Result<()> {
+        self.term.write_line(format!("{}", self.s_bar).as_str())
     }
 
     #[allow(dead_code)]
@@ -658,7 +667,11 @@ mod tests {
         let prefix_map = build_prefix_map();
 
         assert_eq!(
-            format!("{} message\n", prefix_map.get("s_bar_start").unwrap()),
+            format!(
+                "{} message\n{}\n",
+                prefix_map.get("s_bar_start").unwrap(),
+                prefix_map.get("s_bar").unwrap()
+            ),
             String::from_utf8(output).unwrap()
         );
     }
@@ -706,9 +719,10 @@ mod tests {
 
         assert_eq!(
             format!(
-                "{} {}\n",
+                "{} {}\n{}\n",
                 style(prefix_map.get("s_info").unwrap()).blue(),
-                "message"
+                "message",
+                prefix_map.get("s_bar").unwrap()
             ),
             String::from_utf8(output).unwrap()
         );
@@ -719,9 +733,10 @@ mod tests {
 
         assert_eq!(
             format!(
-                "{} {}\n",
+                "{} {}\n{}\n",
                 style(prefix_map.get("s_warn").unwrap()).yellow(),
-                style("message").yellow()
+                style("message").yellow(),
+                prefix_map.get("s_bar").unwrap()
             ),
             String::from_utf8(output).unwrap()
         );
@@ -732,9 +747,10 @@ mod tests {
 
         assert_eq!(
             format!(
-                "{} {}\n",
+                "{} {}\n{}\n",
                 style(prefix_map.get("s_error").unwrap()).red(),
-                style("message").red()
+                style("message").red(),
+                prefix_map.get("s_bar").unwrap()
             ),
             String::from_utf8(output).unwrap()
         );
@@ -754,8 +770,9 @@ mod tests {
 
         assert_eq!(
             format!(
-                "{} name?\n{} ",
+                "{} name?\n{} {}\n",
                 style(prefix_map.get("s_step_submit").unwrap()).magenta(),
+                prefix_map.get("s_bar").unwrap(),
                 prefix_map.get("s_bar").unwrap()
             ),
             String::from_utf8(output).unwrap()
@@ -775,12 +792,13 @@ mod tests {
 
         assert_eq!(
             format!(
-                "{} {}\n\r{} {} Yes / {} No\n",
+                "{} {}\n\r{} {} Yes / {} No\n{}\n",
                 style(prefix_map.get("s_step_submit").unwrap()).magenta(),
                 "message",
                 prefix_map.get("s_bar").unwrap(),
                 style(prefix_map.get("s_radio_active").unwrap()).green(),
-                prefix_map.get("s_radio_inactive").unwrap()
+                prefix_map.get("s_radio_inactive").unwrap(),
+                prefix_map.get("s_bar").unwrap()
             ),
             String::from_utf8(output).unwrap()
         );
@@ -823,7 +841,8 @@ mod tests {
             format!(
                 "{} {}\n\
                 \r{} {} {}\n\
-                \r{} {} {}\n",
+                \r{} {} {}\n\
+                {}\n",
                 style(prefix_map.get("s_step_submit").unwrap()).magenta(),
                 "message",
                 prefix_map.get("s_bar").unwrap(),
@@ -832,6 +851,7 @@ mod tests {
                 prefix_map.get("s_bar").unwrap(),
                 prefix_map.get("s_radio_inactive").unwrap(),
                 "test option 2",
+                prefix_map.get("s_bar").unwrap()
             ),
             String::from_utf8(output).unwrap()
         );
