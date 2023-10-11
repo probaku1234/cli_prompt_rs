@@ -129,7 +129,7 @@ Run the following Cargo command in your project directory:
    ```
 Or add the following line to your Cargo.toml:
   ```sh
-  cli_prompts_rs = "0.1.0"
+  cli_prompts_rs = "0.2.0"
   ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>

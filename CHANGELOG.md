@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2](https://github.com/probaku1234/cli_prompt_rs/compare/v0.1.1...v0.1.2) - 2023-10-11
+
+### Added
+- add prompt_multi_select
+- add print note
+- print empty line at end of each operation
+
 ## [0.1.1](https://github.com/probaku1234/cli_prompt_rs/compare/v0.1.0...v0.1.1) - 2023-10-09
 
 ### Other

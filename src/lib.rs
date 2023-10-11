@@ -59,6 +59,7 @@ pub struct CliPrompt {
     term: Term,
     s_bar_start: String,
     s_bar: String,
+    s_bar_h: String,
     s_bar_end: String,
     s_radio_active: String,
     s_radio_inactive: String,
@@ -67,6 +68,11 @@ pub struct CliPrompt {
     // s_success: String,
     s_warn: String,
     s_error: String,
+    s_corner_top_right: String,
+    s_corner_bottom_right: String,
+    s_connect_left: String,
+    s_checkbox_active: String,
+    s_checkbox_inactive: String,
 }
 
 impl CliPrompt {
@@ -76,6 +82,7 @@ impl CliPrompt {
             term: Term::stdout(),
             s_bar_start: get_symbol("┌", "T", unicode_support),
             s_bar: get_symbol("│", "|", unicode_support),
+            s_bar_h: get_symbol("─", "-", unicode_support),
             s_bar_end: get_symbol("└", "—", unicode_support),
             s_radio_active: get_symbol("●", ">", unicode_support),
             s_radio_inactive: get_symbol("○", " ", unicode_support),
@@ -84,6 +91,11 @@ impl CliPrompt {
             // s_success: get_symbol("◆", "*", unicode_support),
             s_warn: get_symbol("▲", "!", unicode_support),
             s_error: get_symbol("■", "x", unicode_support),
+            s_corner_top_right: get_symbol("╮", "+", unicode_support),
+            s_corner_bottom_right: get_symbol("╯", "+", unicode_support),
+            s_connect_left: get_symbol("├", "+", unicode_support),
+            s_checkbox_active: get_symbol("◼", "[+]", unicode_support),
+            s_checkbox_inactive: get_symbol("◻", "[ ]", unicode_support),
         }
     }
 
@@ -102,6 +114,7 @@ impl CliPrompt {
     pub fn intro(&mut self, message: &str) -> Result<()> {
         self.term
             .write_line(format!("{} {}", self.s_bar_start, message).as_str())?;
+        self.print_empty_line()?;
 
         Ok(())
     }
@@ -181,6 +194,7 @@ impl CliPrompt {
                     .write_line(&format!("{} {}", self.s_error.red(), message.red()))?
             }
         }
+        self.print_empty_line()?;
 
         Ok(())
     }
@@ -204,6 +218,7 @@ impl CliPrompt {
         self.term.write(format!("{} ", self.s_bar).as_bytes())?;
 
         let line = self.term.read_line().unwrap();
+        self.print_empty_line()?;
 
         Ok(line.trim().to_string())
     }
@@ -247,6 +262,7 @@ impl CliPrompt {
                 Key::Enter => {
                     self.term.show_cursor()?;
                     self.term.write_line("")?;
+                    self.print_empty_line()?;
                     break;
                 }
                 _ => {}
@@ -328,6 +344,7 @@ impl CliPrompt {
                 Key::Enter => {
                     self.term.move_cursor_down(options_num)?;
                     self.term.show_cursor()?;
+                    self.print_empty_line()?;
 
                     break;
                 }
@@ -337,6 +354,180 @@ impl CliPrompt {
         Ok(options.get(choice).unwrap().clone())
     }
 
+    /// Prints the prompt message and let users to choose multiple options among the provided ones.
+    /// Users can change the selection by Arrow Up and Arrow down key
+    /// and choose the selection by Enter key.
+    ///
+    /// Returns the selected options as `Vector` of [`PromptSelectOption`] wrapped in `Result`.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use cli_prompts_rs::{CliPrompt, PromptSelectOption};
+    ///
+    /// let mut cli_prompt = CliPrompt::new();
+    /// let options = vec![
+    ///     PromptSelectOption::new("option1", "Pikachu"),
+    ///     PromptSelectOption::new("option2", "Charmander"),
+    ///      PromptSelectOption::new("option3", "Squirtle"),
+    /// ];
+    /// let selected_options = cli_prompt.prompt_multi_select("Which one do you prefer?", options).unwrap();
+    /// println!("{:?}", selected_options);
+    /// ```
+    pub fn prompt_multi_select(
+        &mut self,
+        message: &str,
+        options: Vec<PromptSelectOption>,
+    ) -> Result<Vec<PromptSelectOption>> {
+        let mut choice = 0;
+        let options_num = options.len();
+        let mut is_selected = Vec::new();
+        for _i in 0..options_num {
+            is_selected.push(false);
+        }
+        self.term.hide_cursor()?;
+        self.term
+            .write_line(&self.format_prefix(message.to_string(), MessageType::Question))?;
+
+        for i in 0..options_num {
+            let current_option = &options.get(i).unwrap().label;
+            if i == 0 {
+                self.term.write_line(&self.format_prefix(
+                    format!(
+                        "{} {} {}",
+                        self.s_radio_active.green(),
+                        self.s_checkbox_inactive,
+                        current_option
+                    ),
+                    MessageType::Option,
+                ))?;
+            } else {
+                self.term.write_line(&self.format_prefix(
+                    format!(
+                        "{} {} {}",
+                        self.s_radio_inactive, self.s_checkbox_inactive, current_option
+                    ),
+                    MessageType::Option,
+                ))?;
+            }
+        }
+
+        self.print_multi_select_confirm(options_num, choice)?;
+
+        self.term.move_cursor_up(options_num + 1)?;
+
+        loop {
+            let key = self.term.read_key()?;
+
+            match key {
+                Key::ArrowUp => {
+                    choice = if choice == 0 { options_num } else { choice - 1 };
+                    // print options
+                    self.print_multi_options(&options, &is_selected, choice)?;
+                    self.term.flush()?;
+                    self.term.move_cursor_up(options_num + 1)?;
+                }
+                Key::ArrowDown => {
+                    choice = (choice + 1) % (options_num + 1);
+                    // print options
+                    self.print_multi_options(&options, &is_selected, choice)?;
+                    self.term.flush()?;
+                    self.term.move_cursor_up(options_num + 1)?;
+                }
+                Key::Enter => {
+                    if choice == options_num {
+                        self.term.move_cursor_down(options_num + 1)?;
+                        self.term.show_cursor()?;
+                        self.print_empty_line()?;
+
+                        break;
+                    } else {
+                        is_selected[choice] = !is_selected[choice];
+                        self.print_multi_options(&options, &is_selected, choice)?;
+                        self.term.flush()?;
+                        self.term.move_cursor_up(options_num + 1)?;
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        let mut selected_options = Vec::new();
+        for i in 0..options_num {
+            if is_selected[i] {
+                selected_options.push(options[i].clone());
+            }
+        }
+
+        Ok(selected_options)
+    }
+
+    /// Prints message wrapped by a box.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use cli_prompts_rs::CliPrompt;
+    ///
+    /// let mut cli_prompt = CliPrompt::new();
+    /// cli_prompt.print_note("example note").unwrap();
+    ///
+    /// let note_message = r#"
+    /// Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    /// Sed vel dui sit amet nibh accumsan imperdiet quis sed nibh.
+    /// Cras commodo nisl in eros tincidunt sodales.
+    /// "#;
+    /// cli_prompt.print_note(note_message).unwrap();
+    /// ```
+    pub fn print_note(&mut self, note_message: &str) -> Result<()> {
+        // split message by \n
+        let split_message = note_message.split("\n");
+        // get max length of split messages
+        let mut max_length = 0;
+        for message in split_message {
+            let message_length = message.len();
+            if message_length > max_length {
+                max_length = message_length;
+            }
+        }
+        // print header
+        self.term.write_line(
+            format!(
+                "{}{}{}",
+                self.s_connect_left,
+                self.s_bar_h.repeat(max_length + 2),
+                self.s_corner_top_right
+            )
+            .as_str(),
+        )?;
+        // print message
+        for message in note_message.split("\n") {
+            let message_length = message.len();
+            self.term.write_line(
+                format!(
+                    "{} {}{}{}",
+                    self.s_bar,
+                    message,
+                    " ".repeat(max_length - message_length + 1),
+                    self.s_bar
+                )
+                .as_str(),
+            )?;
+        }
+
+        // print footer
+        self.term.write_line(
+            format!(
+                "{}{}{}",
+                self.s_connect_left,
+                self.s_bar_h.repeat(max_length + 2),
+                self.s_corner_bottom_right
+            )
+            .as_str(),
+        )?;
+
+        self.print_empty_line()
+    }
     fn format_prefix(&self, message: String, message_type: MessageType) -> String {
         return match message_type {
             MessageType::Question => {
@@ -400,6 +591,62 @@ impl CliPrompt {
         Ok(())
     }
 
+    fn print_empty_line(&mut self) -> Result<()> {
+        self.term.write_line(format!("{}", self.s_bar).as_str())
+    }
+
+    fn print_multi_options(
+        &mut self,
+        options: &Vec<PromptSelectOption>,
+        is_selected: &Vec<bool>,
+        current_choice: usize,
+    ) -> Result<()> {
+        let options_num = options.len();
+
+        for i in 0..options_num {
+            let current_option = &options.get(i).unwrap().label;
+
+            self.term.write_line(&self.format_prefix(
+                format!(
+                    "{} {} {}",
+                    if i == current_choice {
+                        self.s_radio_active.green().to_string().clone()
+                    } else {
+                        self.s_radio_inactive.clone()
+                    },
+                    if is_selected[i] {
+                        self.s_checkbox_active.blue().to_string().clone()
+                    } else {
+                        self.s_checkbox_inactive.clone()
+                    },
+                    current_option
+                ),
+                MessageType::Option,
+            ))?;
+        }
+
+        self.print_multi_select_confirm(options_num, current_choice)
+    }
+
+    fn print_multi_select_confirm(
+        &mut self,
+        options_num: usize,
+        current_choice: usize,
+    ) -> Result<()> {
+        self.term.write_line(&self.format_prefix(
+            format!(
+                "{} {}",
+                if options_num == current_choice {
+                    self.s_radio_active.green().to_string().clone()
+                } else {
+                    self.s_radio_inactive.clone()
+                },
+                "confirm"
+            ),
+            MessageType::Option,
+        ))
+    }
+
     #[allow(dead_code)]
     #[cfg(feature = "mock-term")]
     fn get_term_input(&self) -> Vec<u8> {
@@ -448,8 +695,8 @@ pub enum LogType {
     Error,
 }
 
-/// Use to define options for [`CliPrompt::prompt_select()`]
-#[derive(Debug, Clone)]
+/// Use to define options for [`CliPrompt::prompt_select`], [`CliPrompt::prompt_multi_select`]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct PromptSelectOption {
     pub value: String,
     pub label: String,
@@ -534,10 +781,12 @@ mod my_own_socket {
             Ok(String::from_utf8(self.input.clone()).unwrap())
         }
 
+        // TODO: need mock implementation for testing message
         pub fn move_cursor_down(&self, _: usize) -> Result<(), std::io::Error> {
             Ok(())
         }
 
+        // TODO: need mock implementation for testing message
         pub fn move_cursor_up(&self, _: usize) -> Result<(), std::io::Error> {
             Ok(())
         }
@@ -616,6 +865,27 @@ mod tests {
         prefix_map.insert("s_info".to_owned(), get_symbol("●", "•", unicode_support));
         prefix_map.insert("s_warn".to_owned(), get_symbol("▲", "!", unicode_support));
         prefix_map.insert("s_error".to_owned(), get_symbol("■", "x", unicode_support));
+        prefix_map.insert("s_bar_h".to_owned(), get_symbol("─", "-", unicode_support));
+        prefix_map.insert(
+            "s_corner_top_right".to_owned(),
+            get_symbol("╮", "+", unicode_support),
+        );
+        prefix_map.insert(
+            "s_corner_bottom_right".to_owned(),
+            get_symbol("╯", "+", unicode_support),
+        );
+        prefix_map.insert(
+            "s_connect_left".to_owned(),
+            get_symbol("├", "+", unicode_support),
+        );
+        prefix_map.insert(
+            "s_checkbox_active".to_owned(),
+            get_symbol("◼", "[+]", unicode_support),
+        );
+        prefix_map.insert(
+            "s_checkbox_inactive".to_owned(),
+            get_symbol("◻", "[ ]", unicode_support),
+        );
 
         prefix_map
     }
@@ -658,7 +928,11 @@ mod tests {
         let prefix_map = build_prefix_map();
 
         assert_eq!(
-            format!("{} message\n", prefix_map.get("s_bar_start").unwrap()),
+            format!(
+                "{} message\n{}\n",
+                prefix_map.get("s_bar_start").unwrap(),
+                prefix_map.get("s_bar").unwrap()
+            ),
             String::from_utf8(output).unwrap()
         );
     }
@@ -706,9 +980,10 @@ mod tests {
 
         assert_eq!(
             format!(
-                "{} {}\n",
+                "{} {}\n{}\n",
                 style(prefix_map.get("s_info").unwrap()).blue(),
-                "message"
+                "message",
+                prefix_map.get("s_bar").unwrap()
             ),
             String::from_utf8(output).unwrap()
         );
@@ -719,9 +994,10 @@ mod tests {
 
         assert_eq!(
             format!(
-                "{} {}\n",
+                "{} {}\n{}\n",
                 style(prefix_map.get("s_warn").unwrap()).yellow(),
-                style("message").yellow()
+                style("message").yellow(),
+                prefix_map.get("s_bar").unwrap()
             ),
             String::from_utf8(output).unwrap()
         );
@@ -732,9 +1008,10 @@ mod tests {
 
         assert_eq!(
             format!(
-                "{} {}\n",
+                "{} {}\n{}\n",
                 style(prefix_map.get("s_error").unwrap()).red(),
-                style("message").red()
+                style("message").red(),
+                prefix_map.get("s_bar").unwrap()
             ),
             String::from_utf8(output).unwrap()
         );
@@ -754,8 +1031,9 @@ mod tests {
 
         assert_eq!(
             format!(
-                "{} name?\n{} ",
+                "{} name?\n{} {}\n",
                 style(prefix_map.get("s_step_submit").unwrap()).magenta(),
+                prefix_map.get("s_bar").unwrap(),
                 prefix_map.get("s_bar").unwrap()
             ),
             String::from_utf8(output).unwrap()
@@ -775,12 +1053,13 @@ mod tests {
 
         assert_eq!(
             format!(
-                "{} {}\n\r{} {} Yes / {} No\n",
+                "{} {}\n\r{} {} Yes / {} No\n{}\n",
                 style(prefix_map.get("s_step_submit").unwrap()).magenta(),
                 "message",
                 prefix_map.get("s_bar").unwrap(),
                 style(prefix_map.get("s_radio_active").unwrap()).green(),
-                prefix_map.get("s_radio_inactive").unwrap()
+                prefix_map.get("s_radio_inactive").unwrap(),
+                prefix_map.get("s_bar").unwrap()
             ),
             String::from_utf8(output).unwrap()
         );
@@ -823,7 +1102,8 @@ mod tests {
             format!(
                 "{} {}\n\
                 \r{} {} {}\n\
-                \r{} {} {}\n",
+                \r{} {} {}\n\
+                {}\n",
                 style(prefix_map.get("s_step_submit").unwrap()).magenta(),
                 "message",
                 prefix_map.get("s_bar").unwrap(),
@@ -832,6 +1112,7 @@ mod tests {
                 prefix_map.get("s_bar").unwrap(),
                 prefix_map.get("s_radio_inactive").unwrap(),
                 "test option 2",
+                prefix_map.get("s_bar").unwrap()
             ),
             String::from_utf8(output).unwrap()
         );
@@ -866,5 +1147,142 @@ mod tests {
         let choice = cli_prompt.prompt_select("message", options).unwrap();
 
         assert_eq!(String::from("option2"), choice.value);
+    }
+
+    #[test]
+    fn test_print_note() {
+        let prefix_map = build_prefix_map();
+        let first_line = "hello";
+        let second_line = "rust";
+
+        let mut cli_prompt = CliPrompt::new();
+        cli_prompt
+            .print_note(format!("{}\n{}", first_line, second_line).as_str())
+            .unwrap();
+
+        let output = cli_prompt.get_term_output();
+
+        assert_eq!(
+            format!(
+                "{}{}{}\n{} {} {}\n{} {}{}{}\n{}{}{}\n{}\n",
+                prefix_map.get("s_connect_left").unwrap(),
+                prefix_map
+                    .get("s_bar_h")
+                    .unwrap()
+                    .repeat(first_line.len() + 2),
+                prefix_map.get("s_corner_top_right").unwrap(),
+                prefix_map.get("s_bar").unwrap(),
+                first_line,
+                prefix_map.get("s_bar").unwrap(),
+                prefix_map.get("s_bar").unwrap(),
+                second_line,
+                " ".repeat(first_line.len() - second_line.len() + 1),
+                prefix_map.get("s_bar").unwrap(),
+                prefix_map.get("s_connect_left").unwrap(),
+                prefix_map.get("s_bar_h").unwrap().repeat(7),
+                prefix_map.get("s_corner_bottom_right").unwrap(),
+                prefix_map.get("s_bar").unwrap(),
+            ),
+            String::from_utf8(output).unwrap()
+        );
+    }
+
+    // FIXME: fix this after cursor mock done
+    // #[test]
+    // fn test_prompt_multi_select_message() {
+    //     let prefix_map = build_prefix_map();
+    //     let mut cli_prompt = CliPrompt::new();
+    //     let options = vec![
+    //         PromptSelectOption::new("option1", "test option 1"),
+    //         PromptSelectOption::new("option2", "test option 2"),
+    //     ];
+    //     cli_prompt.push_key_input("arrow down");
+    //     cli_prompt.push_key_input("arrow down");
+    //     cli_prompt.prompt_multi_select("message", options).unwrap();
+    //
+    //     let output = cli_prompt.get_term_output();
+    //
+    //     assert_eq!(
+    //         format!(
+    //             "{} {}\n\
+    //             \r{} {} {} {}\n\
+    //             \r{} {} {} {}\n\
+    //             \r{} {}\n\
+    //             {}\n",
+    //             style(prefix_map.get("s_step_submit").unwrap()).magenta(),
+    //             "message",
+    //             prefix_map.get("s_bar").unwrap(),
+    //             style(prefix_map.get("s_radio_active").unwrap()).green(),
+    //             prefix_map.get("s_checkbox_inactive").unwrap(),
+    //             "test option 1",
+    //             prefix_map.get("s_bar").unwrap(),
+    //             prefix_map.get("s_radio_inactive").unwrap(),
+    //             prefix_map.get("s_checkbox_inactive").unwrap(),
+    //             "test option 2",
+    //             prefix_map.get("s_bar").unwrap(),
+    //             "confirm",
+    //             prefix_map.get("s_bar").unwrap()
+    //         ),
+    //         String::from_utf8(output).unwrap()
+    //     );
+    // }
+
+    #[test]
+    fn test_prompt_multi_select_choose_none() {
+        let mut cli_prompt = CliPrompt::new();
+        cli_prompt.push_key_input("arrow down");
+        cli_prompt.push_key_input("arrow down");
+        cli_prompt.push_key_input("enter");
+        let options = vec![
+            PromptSelectOption::new("option1", "test option 1"),
+            PromptSelectOption::new("option2", "test option 2"),
+        ];
+
+        let selected_options = cli_prompt.prompt_multi_select("message", options).unwrap();
+
+        assert_eq!(selected_options.len(), 0);
+    }
+
+    #[test]
+    fn test_prompt_multi_select_choose_option1() {
+        let mut cli_prompt = CliPrompt::new();
+        cli_prompt.push_key_input("enter");
+        cli_prompt.push_key_input("arrow down");
+        cli_prompt.push_key_input("arrow down");
+        cli_prompt.push_key_input("enter");
+        let options = vec![
+            PromptSelectOption::new("option1", "test option 1"),
+            PromptSelectOption::new("option2", "test option 2"),
+        ];
+
+        let selected_options = cli_prompt.prompt_multi_select("message", options).unwrap();
+
+        assert_eq!(
+            vec![PromptSelectOption::new("option1", "test option 1")],
+            selected_options
+        );
+    }
+    #[test]
+    fn test_prompt_multi_select_choose_option1_and_option2() {
+        let mut cli_prompt = CliPrompt::new();
+        cli_prompt.push_key_input("enter");
+        cli_prompt.push_key_input("arrow down");
+        cli_prompt.push_key_input("enter");
+        cli_prompt.push_key_input("arrow down");
+        cli_prompt.push_key_input("enter");
+        let options = vec![
+            PromptSelectOption::new("option1", "test option 1"),
+            PromptSelectOption::new("option2", "test option 2"),
+        ];
+
+        let selected_options = cli_prompt.prompt_multi_select("message", options).unwrap();
+
+        assert_eq!(
+            vec![
+                PromptSelectOption::new("option1", "test option 1"),
+                PromptSelectOption::new("option2", "test option 2")
+            ],
+            selected_options
+        );
     }
 }
