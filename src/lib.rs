@@ -483,13 +483,12 @@ impl CliPrompt {
         // split message by \n
         let split_message = note_message.split("\n");
         // get max length of split messages
-        let mut max_length = 0;
-        for message in split_message {
-            let message_length = message.len();
-            if message_length > max_length {
-                max_length = message_length;
-            }
-        }
+        let max_length_option = split_message.map(|m| m.len()).max();
+        let max_length = match max_length_option {
+            Some(m) => m,
+            None => 0,
+        };
+
         // print header
         self.term.write_line(
             format!(
