@@ -217,7 +217,7 @@ impl CliPrompt {
             .write_line(&self.format_prefix(message.to_string(), MessageType::Question))?;
         self.term.write(format!("{} ", self.s_bar).as_bytes())?;
 
-        let line = self.term.read_line().unwrap();
+        let line = self.term.read_line()?;
         self.print_empty_line()?;
 
         Ok(line.trim().to_string())
