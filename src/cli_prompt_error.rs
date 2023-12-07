@@ -1,6 +1,5 @@
 use std::fmt::{Debug, Display, Formatter};
 use std::io;
-use std::io::Error;
 
 // #[derive(Debug)]
 // pub struct OptionsVecEmptyError {
@@ -18,9 +17,7 @@ use std::io::Error;
 #[derive(Debug)]
 pub enum CliPromptError {
     IoError(io::Error),
-    OptionsVecEmptyError {
-        message: String
-    }
+    OptionsVecEmptyError { message: String },
 }
 
 impl From<io::Error> for CliPromptError {
@@ -28,3 +25,14 @@ impl From<io::Error> for CliPromptError {
         CliPromptError::IoError(error)
     }
 }
+
+impl Display for CliPromptError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CliPromptError::IoError(io_error) => write!(f, "{}", io_error),
+            CliPromptError::OptionsVecEmptyError { message } => write!(f, "{}", message),
+        }
+    }
+}
+
+impl std::error::Error for CliPromptError {}
