@@ -395,6 +395,12 @@ impl CliPrompt {
         message: &str,
         options: Vec<PromptSelectOption>,
     ) -> std::result::Result<Vec<PromptSelectOption>, CliPromptError> {
+        if options.is_empty() {
+            return Err(OptionsVecEmptyError {
+                message: "options is empty".to_string(),
+            });
+        }
+        
         let mut choice = 0;
         let options_num = options.len();
         let mut is_selected = Vec::new();
