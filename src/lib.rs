@@ -183,7 +183,11 @@ impl CliPrompt {
     /// let mut cli_prompt = CliPrompt::new();
     /// cli_prompt.log("example log message", LogType::Info).unwrap();
     /// ```
-    pub fn log(&mut self, message: &str, log_type: LogType) -> std::result::Result<(), CliPromptError> {
+    pub fn log(
+        &mut self,
+        message: &str,
+        log_type: LogType,
+    ) -> std::result::Result<(), CliPromptError> {
         match log_type {
             LogType::Info => {
                 self.term
@@ -309,7 +313,7 @@ impl CliPrompt {
     ) -> std::result::Result<PromptSelectOption, CliPromptError> {
         if options.is_empty() {
             return Err(OptionsVecEmptyError {
-                message: "options is empty".to_string()
+                message: "options is empty".to_string(),
             });
         }
 
@@ -1296,6 +1300,7 @@ mod tests {
             selected_options
         );
     }
+
     #[test]
     fn test_prompt_multi_select_choose_option1_and_option2() {
         let mut cli_prompt = CliPrompt::new();
@@ -1314,7 +1319,7 @@ mod tests {
         assert_eq!(
             vec![
                 PromptSelectOption::new("option1", "test option 1"),
-                PromptSelectOption::new("option2", "test option 2")
+                PromptSelectOption::new("option2", "test option 2"),
             ],
             selected_options
         );
