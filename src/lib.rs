@@ -35,6 +35,7 @@
 //! }
 //! ```
 // pub mod color;
+mod cli_prompt_error;
 
 use colored::*;
 #[cfg(feature = "mock-term")]
@@ -46,6 +47,9 @@ use my_own_socket::{Key, Term};
 use std::fmt;
 use std::io::{Result, Write};
 use supports_unicode::Stream;
+
+use crate::cli_prompt_error::CliPromptError::{self, OptionsVecEmptyError};
+
 
 fn get_symbol(c: &str, fallback: &str, unicode_support: bool) -> String {
     return if unicode_support {
@@ -111,7 +115,7 @@ impl CliPrompt {
     /// let mut cli_prompt = CliPrompt::new();
     /// cli_prompt.intro("example app").unwrap();
     /// ```
-    pub fn intro(&mut self, message: &str) -> Result<()> {
+    pub fn intro(&mut self, message: &str) -> std::result::Result<(), CliPromptError> {
         self.term
             .write_line(format!("{} {}", self.s_bar_start, message).as_str())?;
         self.print_empty_line()?;
@@ -131,7 +135,7 @@ impl CliPrompt {
     /// let mut cli_prompt = CliPrompt::new();
     /// cli_prompt.outro("example app").unwrap();
     /// ```
-    pub fn outro(&mut self, message: &str) -> Result<()> {
+    pub fn outro(&mut self, message: &str) -> std::result::Result<(), CliPromptError> {
         self.term
             .write_line(format!("{} {}", self.s_bar_end, message).as_str())?;
 
@@ -156,7 +160,7 @@ impl CliPrompt {
     ///     exit(0);
     /// }
     /// ```
-    pub fn cancel(&mut self, message: &str) -> Result<()> {
+    pub fn cancel(&mut self, message: &str) -> std::result::Result<(), CliPromptError> {
         self.term
             .write_line(format!("{} {}", self.s_bar_end, style(message).red()).as_str())?;
         Ok(())
@@ -179,7 +183,7 @@ impl CliPrompt {
     /// let mut cli_prompt = CliPrompt::new();
     /// cli_prompt.log("example log message", LogType::Info).unwrap();
     /// ```
-    pub fn log(&mut self, message: &str, log_type: LogType) -> Result<()> {
+    pub fn log(&mut self, message: &str, log_type: LogType) -> std::result::Result<(), CliPromptError> {
         match log_type {
             LogType::Info => {
                 self.term
@@ -212,7 +216,7 @@ impl CliPrompt {
     /// let answer = cli_prompt.prompt_text("example app").unwrap();
     /// println!("{}", answer);
     /// ```
-    pub fn prompt_text(&mut self, message: &str) -> Result<String> {
+    pub fn prompt_text(&mut self, message: &str) -> std::result::Result<String, CliPromptError> {
         self.term
             .write_line(&self.format_prefix(message.to_string(), MessageType::Question))?;
         self.term.write(format!("{} ", self.s_bar).as_bytes())?;
@@ -238,11 +242,17 @@ impl CliPrompt {
     /// let answer = cli_prompt.prompt_confirm("Are you sure?").unwrap();
     /// println!("{}", answer);
     /// ```
-    pub fn prompt_confirm(&mut self, message: &str) -> Result<bool> {
+    pub fn prompt_confirm(&mut self, message: &str) -> std::result::Result<bool, CliPromptError> {
+        // TODO: when message is empty, get default message
+        let prompt_message = if message.is_empty() {
+            "Are you sure?"
+        } else {
+            message
+        };
         let mut choice = 1;
         self.term.hide_cursor()?;
         self.term
-            .write_line(&self.format_prefix(message.to_string(), MessageType::Question))?;
+            .write_line(&self.format_prefix(prompt_message.to_string(), MessageType::Question))?;
         self.print_confirm_message(true)?;
 
         loop {
@@ -296,7 +306,13 @@ impl CliPrompt {
         &mut self,
         message: &str,
         options: Vec<PromptSelectOption>,
-    ) -> Result<PromptSelectOption> {
+    ) -> std::result::Result<PromptSelectOption, CliPromptError> {
+        if options.is_empty() {
+            return Err(OptionsVecEmptyError {
+                message: "options is empty".to_string()
+            });
+        }
+
         let mut choice = 0;
         let options_num = options.len();
         self.term.hide_cursor()?;
@@ -378,7 +394,7 @@ impl CliPrompt {
         &mut self,
         message: &str,
         options: Vec<PromptSelectOption>,
-    ) -> Result<Vec<PromptSelectOption>> {
+    ) -> std::result::Result<Vec<PromptSelectOption>, CliPromptError> {
         let mut choice = 0;
         let options_num = options.len();
         let mut is_selected = Vec::new();
@@ -479,7 +495,7 @@ impl CliPrompt {
     /// "#;
     /// cli_prompt.print_note(note_message).unwrap();
     /// ```
-    pub fn print_note(&mut self, note_message: &str) -> Result<()> {
+    pub fn print_note(&mut self, note_message: &str) -> std::result::Result<(), CliPromptError> {
         // split message by \n
         let split_message = note_message.split("\n");
         // get max length of split messages
@@ -525,7 +541,7 @@ impl CliPrompt {
             .as_str(),
         )?;
 
-        self.print_empty_line()
+        Ok(self.print_empty_line()?)
     }
     fn format_prefix(&self, message: String, message_type: MessageType) -> String {
         return match message_type {
