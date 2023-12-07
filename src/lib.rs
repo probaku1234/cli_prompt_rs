@@ -1171,6 +1171,19 @@ mod tests {
     }
 
     #[test]
+    fn test_prompt_select_empty_options() {
+        let mut cli_prompt = CliPrompt::new();
+
+        let options = vec![];
+
+        let result = cli_prompt.prompt_select("message", options);
+
+        assert!(result.is_err());
+        let error = result.unwrap_err();
+        assert_eq!(error.to_string(), "options is empty");
+    }
+
+    #[test]
     fn test_print_note() {
         let prefix_map = build_prefix_map();
         let first_line = "hello";
@@ -1306,4 +1319,18 @@ mod tests {
             selected_options
         );
     }
+
+    #[test]
+    fn test_test_prompt_multi_select_empty_options() {
+        let mut cli_prompt = CliPrompt::new();
+
+        let options = vec![];
+
+        let result = cli_prompt.prompt_multi_select("message", options);
+
+        assert!(result.is_err());
+        let error = result.unwrap_err();
+        assert_eq!(error.to_string(), "options is empty");
+    }
+    //
 }
