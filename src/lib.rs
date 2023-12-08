@@ -34,8 +34,9 @@
 //!     cli_prompt.outro("Good Bye").unwrap();
 //! }
 //! ```
+pub mod cli_prompt_error;
 // pub mod color;
-mod cli_prompt_error;
+// pub mod spinner_error;
 
 use colored::*;
 #[cfg(feature = "mock-term")]
