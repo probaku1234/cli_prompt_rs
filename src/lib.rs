@@ -292,6 +292,10 @@ impl CliPrompt {
     /// and choose the selection by Enter key.
     ///
     /// Returns the selected option as instance of [`PromptSelectOption`] wrapped in `Result`.
+    /// # Errors
+    ///
+    /// If `options` is empty, [`OptionsVecEmptyError`](CliPromptError::OptionsVecEmptyError) will be returned.
+    ///
     ///
     /// # Examples
     ///
@@ -306,6 +310,17 @@ impl CliPrompt {
     /// ];
     /// let selected_option = cli_prompt.prompt_select("Which one do you prefer?", options).unwrap();
     /// println!("{}", selected_option);
+    /// ```
+    ///
+    /// With empty `options`, it will return [`OptionsVecEmptyError`](CliPromptError::OptionsVecEmptyError).
+    /// ```
+    /// use cli_prompts_rs::{CliPrompt, PromptSelectOption};
+    ///
+    /// let mut cli_prompt = CliPrompt::new();
+    /// let options = vec![];
+    ///
+    /// let result = cli_prompt.prompt_select("Which one do you prefer?", options);
+    /// assert!(result.is_err());
     /// ```
     pub fn prompt_select(
         &mut self,
@@ -380,6 +395,10 @@ impl CliPrompt {
     /// and choose the selection by Enter key.
     ///
     /// Returns the selected options as `Vector` of [`PromptSelectOption`] wrapped in `Result`.
+    /// # Errors
+    ///
+    /// If `options` is empty, [`OptionsVecEmptyError`](CliPromptError::OptionsVecEmptyError) will be returned.
+    ///
     ///
     /// # Examples
     ///
@@ -394,6 +413,17 @@ impl CliPrompt {
     /// ];
     /// let selected_options = cli_prompt.prompt_multi_select("Which one do you prefer?", options).unwrap();
     /// println!("{:?}", selected_options);
+    /// ```
+    ///
+    /// With empty `options`, it will return [`OptionsVecEmptyError`](CliPromptError::OptionsVecEmptyError).
+    /// ```
+    /// use cli_prompts_rs::{CliPrompt, PromptSelectOption};
+    ///
+    /// let mut cli_prompt = CliPrompt::new();
+    /// let options = vec![];
+    ///
+    /// let result = cli_prompt.prompt_multi_select("Which one do you prefer?", options);
+    /// assert!(result.is_err());
     /// ```
     pub fn prompt_multi_select(
         &mut self,
