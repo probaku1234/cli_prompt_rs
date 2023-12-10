@@ -430,13 +430,30 @@ impl CliPrompt {
         message: &str,
         options: Vec<PromptSelectOption>,
     ) -> std::result::Result<Vec<PromptSelectOption>, CliPromptError> {
+        let options_len = options.len();
+        self.prompt_multi_select_with_max_num(message, options, options_len)
+    }
+
+    fn prompt_multi_select_with_max_num(
+        &mut self,
+        message: &str,
+        options: Vec<PromptSelectOption>,
+        max_choice_num: usize
+    ) -> std::result::Result<Vec<PromptSelectOption>, CliPromptError> {
         if options.is_empty() {
             return Err(OptionsVecEmptyError {
                 message: "options is empty".to_string(),
-            });
+            })
         }
-        
+
+        if max_choice_num > options.len() {
+            return Err(OptionsVecEmptyError {
+                message: "options is empty".to_string(),
+            })
+        }
+
         let mut choice = 0;
+        let mut current_selected_num = 0;
         let options_num = options.len();
         let mut is_selected = Vec::new();
         for _i in 0..options_num {
@@ -499,7 +516,18 @@ impl CliPrompt {
 
                         break;
                     } else {
-                        is_selected[choice] = !is_selected[choice];
+                        match is_selected[choice] {
+                            true => {
+                                current_selected_num -= 1;
+                                is_selected[choice] = !is_selected[choice];
+                            }
+                            false => {
+                                if max_choice_num > current_selected_num {
+                                    current_selected_num += 1;
+                                    is_selected[choice] = !is_selected[choice];
+                                }
+                            }
+                        }
                         self.print_multi_options(&options, &is_selected, choice)?;
                         self.term.flush()?;
                         self.term.move_cursor_up(options_num + 1)?;
