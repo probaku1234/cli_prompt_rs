@@ -447,8 +447,14 @@ impl CliPrompt {
         }
 
         if max_choice_num > options.len() {
-            return Err(OptionsVecEmptyError {
-                message: "options is empty".to_string(),
+            return Err(InvalidMaxChoiceNumError {
+                message: "max_choice_num must be less or equal than options length".to_string(),
+            })
+        }
+
+        if max_choice_num == 0 {
+            return Err(InvalidMaxChoiceNumError {
+                message: "max_choice_num must be greater than 0".to_string(),
             })
         }
 
