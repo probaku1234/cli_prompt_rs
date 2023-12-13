@@ -49,8 +49,9 @@ use std::fmt;
 use std::io::{Result, Write};
 use supports_unicode::Stream;
 
-use crate::cli_prompt_error::CliPromptError::{self, OptionsVecEmptyError};
-
+use crate::cli_prompt_error::CliPromptError::{
+    self, InvalidMaxChoiceNumError, OptionsVecEmptyError,
+};
 
 fn get_symbol(c: &str, fallback: &str, unicode_support: bool) -> String {
     return if unicode_support {
