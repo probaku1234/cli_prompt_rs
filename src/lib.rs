@@ -1474,5 +1474,51 @@ mod tests {
         let error = result.unwrap_err();
         assert_eq!(error.to_string(), "options is empty");
     }
+
+    #[test]
+    fn test_prompt_multi_select_with_max_choice_num_empty_options() {
+        let mut cli_prompt = CliPrompt::new();
+
+        let options = vec![];
+
+        let result = cli_prompt.prompt_multi_select_with_max_choice_num("message", options, 1);
+
+        assert!(result.is_err());
+        let error = result.unwrap_err();
+        assert_eq!(error.to_string(), "options is empty");
+    }
+
+    #[test]
+    fn test_prompt_multi_select_with_max_choice_num_greater_than_options_length() {
+        let mut cli_prompt = CliPrompt::new();
+
+        let options = vec![
+            PromptSelectOption::new("option1", "test option 1"),
+            PromptSelectOption::new("option2", "test option 2"),
+        ];
+
+        let result = cli_prompt.prompt_multi_select_with_max_choice_num("message", options, 3);
+
+        assert!(result.is_err());
+        let error = result.unwrap_err();
+        assert_eq!(error.to_string(), "max_choice_num must be less or equal than options length");
+    }
+
+    #[test]
+    fn test_prompt_multi_select_with_max_choice_num_zero() {
+        let mut cli_prompt = CliPrompt::new();
+
+        let options = vec![
+            PromptSelectOption::new("option1", "test option 1"),
+            PromptSelectOption::new("option2", "test option 2"),
+        ];
+
+        let result = cli_prompt.prompt_multi_select_with_max_choice_num("message", options, 0);
+
+        assert!(result.is_err());
+        let error = result.unwrap_err();
+        assert_eq!(error.to_string(), "max_choice_num must be greater than 0");
+    }
+
     //
 }
