@@ -108,6 +108,10 @@ impl CliPrompt {
     ///
     /// Recommends to use at the beginning of your app.
     ///
+    /// # Arguments
+    ///
+    /// * `message` - the intro message
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -128,6 +132,10 @@ impl CliPrompt {
     ///
     /// Recommends to use at the end of your app.
     ///
+    /// # Arguments
+    ///
+    /// * `message` - the outro message
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -146,6 +154,10 @@ impl CliPrompt {
     /// Prints the cancel message with red color.
     ///
     /// Recommends to use when operation canceled and end your app.
+    ///
+    /// # Arguments
+    ///
+    /// * `message` - the cancel message
     ///
     /// # Examples
     ///
@@ -170,6 +182,11 @@ impl CliPrompt {
     /// Prints the log message with the corresponding symbols and color depends on the log type.
     ///
     /// Must provide the log type with [`LogType`] enum.
+    ///
+    /// # Arguments
+    ///
+    /// * `message` - the log message
+    /// * `log_type` - the type of log
     ///
     /// # Format
     /// - Info: prefix symbol ● / color: blue
@@ -212,6 +229,10 @@ impl CliPrompt {
     ///
     /// Returns the input as `String` wrapped in `Result`
     ///
+    /// # Arguments
+    ///
+    /// * `message` - the prompt message
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -237,6 +258,10 @@ impl CliPrompt {
     /// and choose the selection by Enter key.
     ///
     /// Returns true if user choose Yes.
+    ///
+    /// # Arguments
+    ///
+    /// * `message` - the prompt message
     ///
     /// # Examples
     ///
@@ -292,6 +317,12 @@ impl CliPrompt {
     /// and choose the selection by Enter key.
     ///
     /// Returns the selected option as instance of [`PromptSelectOption`] wrapped in `Result`.
+    ///
+    /// # Arguments
+    ///
+    /// * `message` - the prompt message
+    /// * `options` - the list of options for selection
+    ///
     /// # Errors
     ///
     /// If `options` is empty, [`OptionsVecEmptyError`](CliPromptError::OptionsVecEmptyError) will be returned.
@@ -395,6 +426,12 @@ impl CliPrompt {
     /// and choose the selection by Enter key.
     ///
     /// Returns the selected options as `Vector` of [`PromptSelectOption`] wrapped in `Result`.
+    ///
+    /// # Arguments
+    ///
+    /// * `message` - the prompt message
+    /// * `options` - the list of options for selection
+    ///
     /// # Errors
     ///
     /// If `options` is empty, [`OptionsVecEmptyError`](CliPromptError::OptionsVecEmptyError) will be returned.
