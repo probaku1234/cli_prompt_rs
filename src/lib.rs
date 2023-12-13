@@ -468,31 +468,66 @@ impl CliPrompt {
         options: Vec<PromptSelectOption>,
     ) -> std::result::Result<Vec<PromptSelectOption>, CliPromptError> {
         let options_len = options.len();
-        self.prompt_multi_select_with_max_num(message, options, options_len)
+        self.prompt_multi_select_with_max_choice_num(message, options, options_len)
     }
 
-    fn prompt_multi_select_with_max_num(
+    /// Prints the prompt message and let users to choose multiple options among the provided ones.
+    /// Users can change the selection by Arrow Up and Arrow down key
+    /// and choose the selection by Enter key.
+    ///
+    /// Returns the selected options as `Vector` of [`PromptSelectOption`] wrapped in `Result`.
+    /// # Errors
+    ///
+    /// If `options` is empty, [`OptionsVecEmptyError`](CliPromptError::OptionsVecEmptyError) will be returned.
+    ///
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use cli_prompts_rs::{CliPrompt, PromptSelectOption};
+    ///
+    /// let mut cli_prompt = CliPrompt::new();
+    /// let options = vec![
+    ///     PromptSelectOption::new("option1", "Pikachu"),
+    ///     PromptSelectOption::new("option2", "Charmander"),
+    ///      PromptSelectOption::new("option3", "Squirtle"),
+    /// ];
+    /// let selected_options = cli_prompt.prompt_multi_select("Which one do you prefer?", options).unwrap();
+    /// println!("{:?}", selected_options);
+    /// ```
+    ///
+    /// With empty `options`, it will return [`OptionsVecEmptyError`](CliPromptError::OptionsVecEmptyError).
+    /// ```
+    /// use cli_prompts_rs::{CliPrompt, PromptSelectOption};
+    ///
+    /// let mut cli_prompt = CliPrompt::new();
+    /// let options = vec![];
+    ///
+    /// let result = cli_prompt.prompt_multi_select("Which one do you prefer?", options);
+    /// assert!(result.is_err());
+    /// ```
+    pub fn prompt_multi_select_with_max_choice_num(
         &mut self,
         message: &str,
         options: Vec<PromptSelectOption>,
-        max_choice_num: usize
+        max_choice_num: usize,
     ) -> std::result::Result<Vec<PromptSelectOption>, CliPromptError> {
         if options.is_empty() {
             return Err(OptionsVecEmptyError {
                 message: "options is empty".to_string(),
-            })
+            });
         }
 
         if max_choice_num > options.len() {
             return Err(InvalidMaxChoiceNumError {
                 message: "max_choice_num must be less or equal than options length".to_string(),
-            })
+            });
         }
 
         if max_choice_num == 0 {
             return Err(InvalidMaxChoiceNumError {
                 message: "max_choice_num must be greater than 0".to_string(),
-            })
+            });
         }
 
         let mut choice = 0;
