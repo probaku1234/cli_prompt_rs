@@ -41,7 +41,7 @@ impl Display for CliPromptError {
         match self {
             CliPromptError::IoError(io_error) => write!(f, "{}", io_error),
             CliPromptError::OptionsVecEmptyError { message } => write!(f, "{}", message),
-            CliPromptError::InvalidMaxChoiceNumError { message} => write!(f, "{}", message),
+            CliPromptError::InvalidMaxChoiceNumError { message } => write!(f, "{}", message),
         }
     }
 }
