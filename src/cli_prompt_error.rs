@@ -26,7 +26,8 @@ pub enum CliPromptError {
     IoError(io::Error),
     /// The options vec is empty. Used for [`CliPrompt::prompt_select`], [`CliPrompt::prompt_multi_select`]
     OptionsVecEmptyError { message: String },
-    InvalidMaxChoiceNumError {message: String},
+    /// Used for [`CliPrompt::prompt_multi_select_with_max_choice_num`]
+    InvalidMaxChoiceNumError { message: String },
 }
 
 impl From<io::Error> for CliPromptError {
