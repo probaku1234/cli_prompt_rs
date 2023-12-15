@@ -628,6 +628,10 @@ impl CliPrompt {
 
     /// Prints message wrapped by a box.
     ///
+    /// # Arguments
+    ///
+    /// * `note_message` - the note message
+    ///
     /// # Examples
     ///
     /// ```no_run
