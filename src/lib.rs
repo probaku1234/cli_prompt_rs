@@ -328,7 +328,15 @@ impl CliPrompt {
     ///
     /// If `options` is empty, [`OptionsVecEmptyError`](CliPromptError::OptionsVecEmptyError) will be returned.
     ///
+    /// ```
+    /// use cli_prompts_rs::{CliPrompt, PromptSelectOption};
     ///
+    /// let mut cli_prompt = CliPrompt::new();
+    /// let options = vec![];
+    ///
+    /// let result = cli_prompt.prompt_select("Which one do you prefer?", options);
+    /// assert!(result.is_err());
+    /// ```
     /// # Examples
     ///
     /// ```no_run
@@ -342,17 +350,6 @@ impl CliPrompt {
     /// ];
     /// let selected_option = cli_prompt.prompt_select("Which one do you prefer?", options).unwrap();
     /// println!("{}", selected_option);
-    /// ```
-    ///
-    /// With empty `options`, it will return [`OptionsVecEmptyError`](CliPromptError::OptionsVecEmptyError).
-    /// ```
-    /// use cli_prompts_rs::{CliPrompt, PromptSelectOption};
-    ///
-    /// let mut cli_prompt = CliPrompt::new();
-    /// let options = vec![];
-    ///
-    /// let result = cli_prompt.prompt_select("Which one do you prefer?", options);
-    /// assert!(result.is_err());
     /// ```
     pub fn prompt_select(
         &mut self,
@@ -428,6 +425,20 @@ impl CliPrompt {
     ///
     /// Returns the selected options as `Vector` of [`PromptSelectOption`] wrapped in `Result`.
     ///
+    /// This function is same as calling [`CliPrompt::prompt_multi_select_with_max_choice_num`] with options length as `max_choice_num`.
+    /// ```no_run
+    /// use cli_prompts_rs::{CliPrompt, PromptSelectOption};
+    ///
+    /// let mut cli_prompt = CliPrompt::new();
+    /// let options = vec![
+    ///     PromptSelectOption::new("option1", "Pikachu"),
+    ///     PromptSelectOption::new("option2", "Charmander"),
+    ///      PromptSelectOption::new("option3", "Squirtle"),
+    /// ];
+    /// let options_len = options.len();
+    /// cli_prompt.prompt_multi_select_with_max_choice_num("message", options, options_len).unwrap();
+    /// ```
+    ///
     /// # Arguments
     ///
     /// * `message` - the prompt message
@@ -437,6 +448,15 @@ impl CliPrompt {
     ///
     /// If `options` is empty, [`OptionsVecEmptyError`](CliPromptError::OptionsVecEmptyError) will be returned.
     ///
+    /// ```
+    /// use cli_prompts_rs::{CliPrompt, PromptSelectOption};
+    ///
+    /// let mut cli_prompt = CliPrompt::new();
+    /// let options = vec![];
+    ///
+    /// let result = cli_prompt.prompt_multi_select("Which one do you prefer?", options);
+    /// assert!(result.is_err());
+    /// ```
     ///
     /// # Examples
     ///
@@ -451,18 +471,6 @@ impl CliPrompt {
     /// ];
     /// let selected_options = cli_prompt.prompt_multi_select("Which one do you prefer?", options).unwrap();
     /// println!("{:?}", selected_options);
-    /// ```
-    ///
-    /// With empty `options`, it will return [`OptionsVecEmptyError`](CliPromptError::OptionsVecEmptyError).
-    /// ```
-    /// use cli_prompts_rs::{CliPrompt, PromptSelectOption};
-    ///
-    /// let mut cli_prompt = CliPrompt::new();
-    /// let options = vec![];
-    ///
-    /// let result = cli_prompt.prompt_multi_select("Which one do you prefer?", options);
-    /// assert!(result.is_err());
-    /// ```
     pub fn prompt_multi_select(
         &mut self,
         message: &str,
@@ -473,15 +481,49 @@ impl CliPrompt {
     }
 
     /// Prints the prompt message and let users to choose multiple options among the provided ones.
+    /// Users can select up to `max_choice_num` from the options.
     /// Users can change the selection by Arrow Up and Arrow down key
     /// and choose the selection by Enter key.
     ///
     /// Returns the selected options as `Vector` of [`PromptSelectOption`] wrapped in `Result`.
+    ///
+    /// # Arguments
+    ///
+    /// * `message` - the prompt message
+    /// * `options` - the list of options for selection
+    /// * `max_choice_num` - the maximum number of choice. Must be greater than 0 and equal or less than length of `options`.
+    ///
     /// # Errors
     ///
     /// If `options` is empty, [`OptionsVecEmptyError`](CliPromptError::OptionsVecEmptyError) will be returned.
     ///
+    /// ```
+    /// use cli_prompts_rs::{CliPrompt, PromptSelectOption};
     ///
+    /// let mut cli_prompt = CliPrompt::new();
+    /// let options = vec![];
+    ///
+    /// let result = cli_prompt.prompt_multi_select("Which one do you prefer?", options);
+    /// assert!(result.is_err());
+    /// ```
+    ///
+    /// If `max_choice_num` is zero or greater than length of `options`, [`InvalidMaxChoiceNumber`](CliPromptError::InvalidMaxChoiceNumError) will be returned.
+    /// ```
+    /// use cli_prompts_rs::{CliPrompt, PromptSelectOption};
+    ///
+    /// let mut cli_prompt = CliPrompt::new();
+    ///
+    /// let options = vec![
+    ///     PromptSelectOption::new("option1", "test option 1"),
+    ///     PromptSelectOption::new("option2", "test option 2"),
+    /// ];
+    ///
+    /// let result = cli_prompt.prompt_multi_select_with_max_choice_num("message", options, 0);
+    ///
+    /// assert!(result.is_err());
+    /// let error = result.unwrap_err();
+    /// assert_eq!(error.to_string(), "max_choice_num must be greater than 0");
+    /// ```
     /// # Examples
     ///
     /// ```no_run
@@ -498,15 +540,6 @@ impl CliPrompt {
     /// ```
     ///
     /// With empty `options`, it will return [`OptionsVecEmptyError`](CliPromptError::OptionsVecEmptyError).
-    /// ```
-    /// use cli_prompts_rs::{CliPrompt, PromptSelectOption};
-    ///
-    /// let mut cli_prompt = CliPrompt::new();
-    /// let options = vec![];
-    ///
-    /// let result = cli_prompt.prompt_multi_select("Which one do you prefer?", options);
-    /// assert!(result.is_err());
-    /// ```
     pub fn prompt_multi_select_with_max_choice_num(
         &mut self,
         message: &str,
