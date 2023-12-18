@@ -1426,7 +1426,10 @@ mod tests {
 
         assert!(result.is_err());
         let error = result.unwrap_err();
-        assert_eq!(error.to_string(), "max_choice_num must be less or equal than options length");
+        assert_eq!(
+            error.to_string(),
+            "max_choice_num must be less or equal than options length"
+        );
     }
 
     #[test]
