@@ -1,23 +1,16 @@
 //! The error type for `CliPrompt` struct
 //!
 //! All public methods in `CliPrompt` returns `Result` with [`CliPromptError`]
+use crate::CliPrompt;
 use std::fmt::{Debug, Display, Formatter};
 use std::io;
-use crate::CliPrompt;
 // TODO: add doc
-// TODO: add spinner error
-// #[derive(Debug)]
-// pub struct OptionsVecEmptyError {
-//     pub message: String,
-// }
-//
-// impl Display for OptionsVecEmptyError {
-//     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-//         write!(f, "{}", self.message)
-//     }
-// }
 
-// impl std::error::Error for OptionsVecEmptyError {}
+#[derive(Debug)]
+pub enum SpinnerError {
+    TimedOut,
+    TaskFailed,
+}
 
 /// A list specifying general categories of error from `CliPrompt` module.
 #[derive(Debug)]
@@ -28,6 +21,7 @@ pub enum CliPromptError {
     OptionsVecEmptyError { message: String },
     /// Used for [`CliPrompt::prompt_multi_select_with_max_choice_num`]
     InvalidMaxChoiceNumError { message: String },
+    SpinnerError(SpinnerError)
 }
 
 impl From<io::Error> for CliPromptError {
@@ -42,6 +36,7 @@ impl Display for CliPromptError {
             CliPromptError::IoError(io_error) => write!(f, "{}", io_error),
             CliPromptError::OptionsVecEmptyError { message } => write!(f, "{}", message),
             CliPromptError::InvalidMaxChoiceNumError { message } => write!(f, "{}", message),
+            CliPromptError::SpinnerError(spinner_error) => spinner_error.fmt(f),
         }
     }
 }
