@@ -1,3 +1,5 @@
+// #![cfg_attr(docsrs, feature(doc_cfg))]
+#![cfg_attr(feature = "docs", feature(doc_cfg))]
 //! `cli_prompts_rs` is a collection of prompt functions
 //! to build CLI apps with nicely formatted output.
 //!
@@ -46,13 +48,17 @@ use console::style;
 use console::{style, Key, Term};
 #[cfg(feature = "mock-term")]
 use crate::mock_term::mock_term::{Key, Term};
-use std::io::{Error, Result, Write};
 use std::io::{Result, Write};
+use std::{fmt, time};
 use supports_unicode::Stream;
 
 use crate::cli_prompt_error::CliPromptError::{
-    self, InvalidMaxChoiceNumError, OptionsVecEmptyError,
+    self, InvalidMaxChoiceNumError, OptionsVecEmptyError
 };
+use crate::cli_prompt_error::SpinnerError;
+use std::sync::mpsc::{self, TryRecvError};
+use std::thread;
+use std::time::Duration;
 
 fn get_symbol(c: &str, fallback: &str, unicode_support: bool) -> String {
     return if unicode_support {
@@ -80,8 +86,10 @@ pub struct CliPrompt {
     s_connect_left: String,
     s_checkbox_active: String,
     s_checkbox_inactive: String,
+    s_spinner_frames: [String; 4],
 }
-
+// TODO: update doc parameter
+// TODO: separate files
 impl CliPrompt {
     pub fn new() -> Self {
         let unicode_support = supports_unicode::on(Stream::Stdout);
@@ -103,8 +111,18 @@ impl CliPrompt {
             s_connect_left: get_symbol("├", "+", unicode_support),
             s_checkbox_active: get_symbol("◼", "[+]", unicode_support),
             s_checkbox_inactive: get_symbol("◻", "[ ]", unicode_support),
+            s_spinner_frames: [
+                get_symbol("◒", "•", unicode_support),
+                get_symbol("◐", "o", unicode_support),
+                get_symbol("◓", "O", unicode_support),
+                get_symbol("◑", "0", unicode_support),
+            ],
         }
     }
+
+    // pub fn new_with_config() -> Self {
+    //
+    // }
 
     /// Prints the intro message.
     ///
@@ -729,6 +747,69 @@ impl CliPrompt {
 
         Ok(self.print_empty_line()?)
     }
+    #[cfg(feature = "unstable")]
+    #[cfg_attr(feature = "docs", doc(cfg(unstable)))]
+    pub fn spinner_example<F, D>(&mut self, message: &str, timeout: u64, mut task: F) -> std::result::Result<(), CliPromptError>
+        where
+            F: FnMut() -> Result<D> + Send + 'static,
+    {
+        let now = time::Instant::now();
+        let mut spinner_symbol_index = 0;
+        let (tx, rx) = mpsc::channel::<bool>();
+
+        thread::spawn(move || loop {
+            let result = match task() {
+                Ok(_) => tx.send(true),
+                Err(_) => tx.send(false),
+            };
+
+            if result.is_err() {
+                return result.err();
+            }
+        });
+
+        let result = loop {
+            if now.elapsed() >= time::Duration::from_millis(timeout) {
+                return Err(CliPromptError::SpinnerError(SpinnerError::TimedOut));
+            }
+
+            self.term.write(
+                format!(
+                    "\r{} {}",
+                    self.s_spinner_frames[spinner_symbol_index]
+                        .clone()
+                        .magenta(),
+                    message,
+                )
+                    .as_bytes(),
+            )?;
+
+            self.term
+                .write(format!("{}", ". ".repeat(spinner_symbol_index + 1)).as_bytes())?;
+            self.term.clear_chars(2 * (spinner_symbol_index + 1))?;
+
+            thread::sleep(Duration::from_millis(1000));
+            spinner_symbol_index = (spinner_symbol_index + 1) % 4;
+
+            match rx.try_recv() {
+                Ok(true) | Err(TryRecvError::Disconnected) => {
+                    break true;
+                }
+                Ok(false) => {
+                    break false;
+                }
+                Err(TryRecvError::Empty) => continue,
+            }
+        };
+        self.term.write_line("")?;
+        self.print_empty_line()?;
+
+        if !result {
+            return Err(CliPromptError::SpinnerError(SpinnerError::TaskFailed));
+        }
+        Ok(())
+    }
+
     fn format_prefix(&self, message: String, message_type: MessageType) -> String {
         return match message_type {
             MessageType::Question => {
