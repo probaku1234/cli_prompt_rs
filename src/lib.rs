@@ -749,23 +749,32 @@ impl CliPrompt {
     }
     #[cfg(feature = "unstable")]
     #[cfg_attr(feature = "docs", doc(cfg(unstable)))]
-    pub fn spinner_example<F, D>(&mut self, message: &str, timeout: u64, mut task: F) -> std::result::Result<(), CliPromptError>
-        where
-            F: FnMut() -> Result<D> + Send + 'static,
+    pub fn spinner_example<F, T>(
+        &mut self,
+        message: &str,
+        timeout: u64,
+        mut task: F,
+    ) -> std::result::Result<(), CliPromptError>
+    where
+        F: FnMut() -> T,
+        F: Send + 'static,
     {
         let now = time::Instant::now();
         let mut spinner_symbol_index = 0;
         let (tx, rx) = mpsc::channel::<bool>();
 
         thread::spawn(move || loop {
-            let result = match task() {
-                Ok(_) => tx.send(true),
-                Err(_) => tx.send(false),
-            };
+            // let result = match task() {
+            //     Ok(_) => tx.send(true),
+            //     Err(_) => tx.send(false),
+            // };
+            //
+            // if result.is_err() {
+            //     return result.err();
+            // }
+            task();
 
-            if result.is_err() {
-                return result.err();
-            }
+            _ = tx.send(true);
         });
 
         let result = loop {
