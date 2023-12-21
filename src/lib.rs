@@ -41,19 +41,19 @@ mod mock_term;
 // pub mod color;
 // pub mod spinner_error;
 
+#[cfg(feature = "mock-term")]
+use crate::mock_term::mock_term::{Key, Term};
 use colored::*;
 #[cfg(feature = "mock-term")]
 use console::style;
 #[cfg(not(feature = "mock-term"))]
 use console::{style, Key, Term};
-#[cfg(feature = "mock-term")]
-use crate::mock_term::mock_term::{Key, Term};
 use std::io::{Result, Write};
 use std::{fmt, time};
 use supports_unicode::Stream;
 
 use crate::cli_prompt_error::CliPromptError::{
-    self, InvalidMaxChoiceNumError, OptionsVecEmptyError
+    self, InvalidMaxChoiceNumError, OptionsVecEmptyError,
 };
 use crate::cli_prompt_error::SpinnerError;
 use std::sync::mpsc::{self, TryRecvError};
@@ -781,7 +781,7 @@ impl CliPrompt {
                         .magenta(),
                     message,
                 )
-                    .as_bytes(),
+                .as_bytes(),
             )?;
 
             self.term
