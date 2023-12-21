@@ -49,16 +49,20 @@ use console::style;
 #[cfg(not(feature = "mock-term"))]
 use console::{style, Key, Term};
 use std::io::{Result, Write};
-use std::{fmt, time};
+use std::fmt;
 use supports_unicode::Stream;
 
 use crate::cli_prompt_error::CliPromptError::{
     self, InvalidMaxChoiceNumError, OptionsVecEmptyError,
 };
-use crate::cli_prompt_error::SpinnerError;
-use std::sync::mpsc::{self, TryRecvError};
-use std::thread;
-use std::time::Duration;
+#[cfg(feature = "unstable")]
+use {
+    crate::cli_prompt_error::SpinnerError,
+    std::sync::mpsc::{self, TryRecvError},
+    std::thread,
+    std::time::Duration,
+    std::time,
+};
 
 fn get_symbol(c: &str, fallback: &str, unicode_support: bool) -> String {
     return if unicode_support {
@@ -86,6 +90,7 @@ pub struct CliPrompt {
     s_connect_left: String,
     s_checkbox_active: String,
     s_checkbox_inactive: String,
+    #[cfg(feature = "unstable")]
     s_spinner_frames: [String; 4],
 }
 // TODO: update doc parameter
@@ -111,6 +116,7 @@ impl CliPrompt {
             s_connect_left: get_symbol("├", "+", unicode_support),
             s_checkbox_active: get_symbol("◼", "[+]", unicode_support),
             s_checkbox_inactive: get_symbol("◻", "[ ]", unicode_support),
+            #[cfg(feature = "unstable")]
             s_spinner_frames: [
                 get_symbol("◒", "•", unicode_support),
                 get_symbol("◐", "o", unicode_support),
