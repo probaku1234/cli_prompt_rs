@@ -755,7 +755,7 @@ impl CliPrompt {
     }
     #[cfg(feature = "unstable")]
     #[cfg_attr(feature = "docs", doc(cfg(unstable)))]
-    pub fn spinner_example<F, T>(
+    pub fn call_spinner<F, T>(
         &mut self,
         message: &str,
         timeout: u64,
@@ -1553,7 +1553,7 @@ mod tests {
             thread::sleep(time::Duration::from_millis(5000));
             Ok(())
         };
-        let result = cli_prompt.spinner_example("", 1000, pika).unwrap_err();
+        let result = cli_prompt.call_spinner("", 1000, pika).unwrap_err();
 
         assert_eq!("TimedOut".to_string(), result.to_string());
     }
@@ -1580,7 +1580,7 @@ mod tests {
             thread::sleep(time::Duration::from_millis(1000));
             Ok(())
         };
-        let result = cli_prompt.spinner_example("", 5000, pika);
+        let result = cli_prompt.call_spinner("", 5000, pika);
 
         assert!(result.is_ok());
     }
