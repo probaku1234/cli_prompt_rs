@@ -1019,6 +1019,7 @@ impl fmt::Display for PromptSelectOption {
 mod tests {
     use super::*;
     use std::collections::HashMap;
+    #[cfg(feature = "unstable")]
     use std::io::{Error, ErrorKind};
 
     fn build_prefix_map() -> HashMap<String, String> {
@@ -1546,6 +1547,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "unstable")]
     fn test_spinner_timeout() {
         let mut cli_prompt = CliPrompt::new();
 
@@ -1573,6 +1575,7 @@ mod tests {
     // }
 
     #[test]
+    #[cfg(feature = "unstable")]
     fn test_spinner() {
         let mut cli_prompt = CliPrompt::new();
 
