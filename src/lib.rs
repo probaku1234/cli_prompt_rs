@@ -1019,6 +1019,7 @@ impl fmt::Display for PromptSelectOption {
 mod tests {
     use super::*;
     use std::collections::HashMap;
+    use std::io::{Error, ErrorKind};
 
     fn build_prefix_map() -> HashMap<String, String> {
         let unicode_support = supports_unicode::on(Stream::Stdout);
@@ -1544,5 +1545,43 @@ mod tests {
         assert_eq!(error.to_string(), "max_choice_num must be greater than 0");
     }
 
+    #[test]
+    fn test_spinner_timeout() {
+        let mut cli_prompt = CliPrompt::new();
+
+        let pika = || -> std::io::Result<()> {
+            thread::sleep(time::Duration::from_millis(5000));
+            Ok(())
+        };
+        let result = cli_prompt.spinner_example("", 1000, pika).unwrap_err();
+
+        assert_eq!("TimedOut".to_string(), result.to_string());
+    }
+
+    // #[test]
+    // fn test_spinner_task_failed() {
+    //     let mut cli_prompt = CliPrompt::new();
     //
+    //     let pika = || -> std::io::Result<()> {
+    //         thread::sleep(time::Duration::from_millis(1000));
+    //         Err(Error::new(ErrorKind::Other, ""))
+    //     };
+    //     let result = cli_prompt.spinner_example("", 5000, pika).unwrap_err();
+    //
+    //     // assert_eq!(ErrorKind::Other, result.kind());
+    //     assert_eq!("TaskFailed".to_string(), result.to_string());
+    // }
+
+    #[test]
+    fn test_spinner() {
+        let mut cli_prompt = CliPrompt::new();
+
+        let pika = || -> std::io::Result<()> {
+            thread::sleep(time::Duration::from_millis(1000));
+            Ok(())
+        };
+        let result = cli_prompt.spinner_example("", 5000, pika);
+
+        assert!(result.is_ok());
+    }
 }
