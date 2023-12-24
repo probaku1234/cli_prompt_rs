@@ -1,7 +1,6 @@
 //! The error type for `CliPrompt` struct
 //!
 //! All public methods in `CliPrompt` returns `Result` with [`CliPromptError`]
-use crate::CliPrompt;
 use std::fmt::{Debug, Display, Formatter};
 use std::io;
 // TODO: add doc
@@ -18,10 +17,14 @@ pub enum CliPromptError {
     /// Indicates an underlying IO Error.
     IoError(io::Error),
     /// The options vec is empty. Used for [`CliPrompt::prompt_select`], [`CliPrompt::prompt_multi_select`]
-    OptionsVecEmptyError { message: String },
+    OptionsVecEmptyError {
+        message: String,
+    },
     /// Used for [`CliPrompt::prompt_multi_select_with_max_choice_num`]
-    InvalidMaxChoiceNumError { message: String },
-    SpinnerError(SpinnerError)
+    InvalidMaxChoiceNumError {
+        message: String,
+    },
+    SpinnerError(SpinnerError),
 }
 
 impl From<io::Error> for CliPromptError {
