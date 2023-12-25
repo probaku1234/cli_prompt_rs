@@ -769,7 +769,7 @@ impl CliPrompt {
         let mut spinner_symbol_index = 0;
         let (tx, rx) = mpsc::channel::<bool>();
 
-        thread::spawn(move || loop {
+        let task_join_handler = thread::spawn(move || {
             // let result = match task() {
             //     Ok(_) => tx.send(true),
             //     Err(_) => tx.send(false),
@@ -780,7 +780,7 @@ impl CliPrompt {
             // }
             task();
 
-            _ = tx.send(true);
+            tx.send(true)
         });
 
         let result = loop {
