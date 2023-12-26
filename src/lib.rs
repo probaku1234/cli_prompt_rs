@@ -819,9 +819,13 @@ impl CliPrompt {
         self.term.write_line("")?;
         self.print_empty_line()?;
 
-        if !result {
-            return Err(CliPromptError::SpinnerError(SpinnerError::TaskFailed));
+        match task_join_handler.join() {
+            Ok(_) => {},
+            Err(e) => return Err(CliPromptError::SpinnerError(SpinnerError::TaskFailed))
         }
+        // if !result {
+        //     return Err(CliPromptError::SpinnerError(SpinnerError::TaskFailed));
+        // }
         Ok(())
     }
 
