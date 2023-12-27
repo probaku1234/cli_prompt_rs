@@ -82,7 +82,7 @@ pub struct CliPrompt {
     s_radio_inactive: String,
     s_step_submit: String,
     s_info: String,
-    // s_success: String,
+    s_success: String,
     s_warn: String,
     s_error: String,
     s_corner_top_right: String,
@@ -108,7 +108,7 @@ impl CliPrompt {
             s_radio_inactive: get_symbol("○", " ", unicode_support),
             s_step_submit: get_symbol("◇", "o", unicode_support),
             s_info: get_symbol("●", "•", unicode_support),
-            // s_success: get_symbol("◆", "*", unicode_support),
+            s_success: get_symbol("◆", "*", unicode_support),
             s_warn: get_symbol("▲", "!", unicode_support),
             s_error: get_symbol("■", "x", unicode_support),
             s_corner_top_right: get_symbol("╮", "+", unicode_support),
@@ -816,7 +816,9 @@ impl CliPrompt {
                 Err(TryRecvError::Empty) => continue,
             }
         };
-        self.term.write_line("")?;
+        // self.term.write_line("")?;
+        self.term.clear_line()?;
+        self.term.write_line(format!("{} {}", self.s_success.green(), "Done!").as_str())?;
         self.print_empty_line()?;
 
         match task_join_handler.join() {
