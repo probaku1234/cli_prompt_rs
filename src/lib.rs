@@ -753,6 +753,35 @@ impl CliPrompt {
 
         Ok(self.print_empty_line()?)
     }
+
+    /// Displays spinner while waiting for the `task` to finish.
+    /// When this functions is called, starts the spinner, spawns a new thread, and call `task`.
+    /// Once the `task` is done, the spinner stopped, and prints the complete message.
+    ///
+    /// The `task` closure has has two constraints, [`Send`] and `'static`, same as [`thread::spawn`]'s `f` closure
+    ///
+    /// # Arguments
+    ///
+    /// * `message` - the loading message
+    /// * `timeout` - the time limit in milliseconds
+    /// * `task` - the closure that runs in thread, while spinner is running
+    ///
+    /// # Errors
+    ///
+    /// If `task` is not finished within given `timeout`, [`TimedOut`](SpinnerError::TimedOut) will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::{thread, time};
+    /// use cli_prompts_rs::CliPrompt;
+    ///
+    /// let mut cli_prompt = CliPrompt::new();
+    /// let pika = || {
+    ///     thread::sleep(time::Duration::from_millis(500));
+    /// };
+    /// cli_prompt.call_spinner("loading", 5000, pika).unwrap();
+    /// ```
     #[cfg(feature = "unstable")]
     #[cfg_attr(feature = "docs", doc(cfg(unstable)))]
     pub fn call_spinner<F, T>(
