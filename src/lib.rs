@@ -812,7 +812,7 @@ impl CliPrompt {
             tx.send(true)
         });
 
-        let result = loop {
+        let _result = loop {
             if now.elapsed() >= time::Duration::from_millis(timeout) {
                 return Err(CliPromptError::SpinnerError(SpinnerError::TimedOut));
             }
@@ -852,7 +852,7 @@ impl CliPrompt {
 
         match task_join_handler.join() {
             Ok(_) => {},
-            Err(e) => return Err(CliPromptError::SpinnerError(SpinnerError::TaskFailed))
+            Err(_e) => return Err(CliPromptError::SpinnerError(SpinnerError::TaskFailed))
         }
         // if !result {
         //     return Err(CliPromptError::SpinnerError(SpinnerError::TaskFailed));
