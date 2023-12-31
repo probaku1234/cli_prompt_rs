@@ -82,6 +82,7 @@ pub struct CliPrompt {
     s_radio_inactive: String,
     s_step_submit: String,
     s_info: String,
+    #[cfg(feature = "unstable")]
     s_success: String,
     s_warn: String,
     s_error: String,
@@ -108,6 +109,7 @@ impl CliPrompt {
             s_radio_inactive: get_symbol("○", " ", unicode_support),
             s_step_submit: get_symbol("◇", "o", unicode_support),
             s_info: get_symbol("●", "•", unicode_support),
+            #[cfg(feature = "unstable")]
             s_success: get_symbol("◆", "*", unicode_support),
             s_warn: get_symbol("▲", "!", unicode_support),
             s_error: get_symbol("■", "x", unicode_support),
