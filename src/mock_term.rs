@@ -1,7 +1,7 @@
 pub(crate) mod mock_term {
+    use crate::mock_term::mock_term;
     use std::collections::VecDeque;
     use std::io::Write;
-    use crate::mock_term::mock_term;
 
     pub struct Term {
         pub input: Vec<u8>,
@@ -74,6 +74,10 @@ pub(crate) mod mock_term {
         }
 
         pub fn clear_chars(&self, _: usize) -> Result<(), std::io::Error> {
+            Ok(())
+        }
+
+        pub fn clear_line(&self) -> Result<(), std::io::Error> {
             Ok(())
         }
     }
