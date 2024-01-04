@@ -27,6 +27,7 @@ pub enum CliPromptError {
     InvalidMaxChoiceNumError {
         message: String,
     },
+    /// Indicates an underlying Spinner Error.
     SpinnerError(SpinnerError),
 }
 
