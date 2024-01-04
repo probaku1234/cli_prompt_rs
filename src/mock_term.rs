@@ -10,7 +10,7 @@ pub(crate) mod mock_term {
     }
 
     #[allow(dead_code)]
-    impl crate::mock_term::mock_term::Term {
+    impl Term {
         pub fn stdout() -> Self {
             Self {
                 input: vec![],
