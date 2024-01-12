@@ -792,10 +792,12 @@ impl CliPrompt {
         timeout: u64,
         mut task: F,
     ) -> std::result::Result<(), CliPromptError>
-    where
-        F: FnMut() -> T,
-        F: Send + 'static,
+        where
+            F: FnMut() -> T,
+            F: Send + 'static,
     {
+        // TODO: thread error handle?
+        // TODO: show result?
         let now = time::Instant::now();
         let mut spinner_symbol_index = 0;
         let (tx, rx) = mpsc::channel::<bool>();
