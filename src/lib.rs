@@ -725,7 +725,7 @@ impl CliPrompt {
                 self.s_bar_h.repeat(max_length + 2),
                 self.s_corner_top_right
             )
-            .as_str(),
+                .as_str(),
         )?;
         // print message
         for message in note_message.split("\n") {
@@ -738,7 +738,7 @@ impl CliPrompt {
                     " ".repeat(max_length - message_length + 1),
                     self.s_bar
                 )
-                .as_str(),
+                    .as_str(),
             )?;
         }
 
@@ -750,7 +750,7 @@ impl CliPrompt {
                 self.s_bar_h.repeat(max_length + 2),
                 self.s_corner_bottom_right
             )
-            .as_str(),
+                .as_str(),
         )?;
 
         Ok(self.print_empty_line()?)
@@ -827,7 +827,7 @@ impl CliPrompt {
                         .magenta(),
                     message,
                 )
-                .as_bytes(),
+                    .as_bytes(),
             )?;
 
             self.term
@@ -853,7 +853,7 @@ impl CliPrompt {
         self.print_empty_line()?;
 
         match task_join_handler.join() {
-            Ok(_) => {},
+            Ok(_) => {}
             Err(_e) => return Err(CliPromptError::SpinnerError(SpinnerError::TaskFailed))
         }
         // if !result {
@@ -882,7 +882,7 @@ impl CliPrompt {
                     ),
                     MessageType::Option,
                 )
-                .as_bytes(),
+                    .as_bytes(),
             )?;
         } else {
             self.term.write(
@@ -894,7 +894,7 @@ impl CliPrompt {
                     ),
                     MessageType::Option,
                 )
-                .as_bytes(),
+                    .as_bytes(),
             )?;
         }
 
