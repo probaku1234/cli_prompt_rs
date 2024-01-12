@@ -4,6 +4,8 @@ pub(crate) mod mock_term {
     use std::io::Write;
 
     pub struct Term {
+        cursor_hidden: bool,
+        current_cursor: usize,
         pub input: Vec<u8>,
         pub output: Vec<u8>,
         pub key_input: VecDeque<String>,
@@ -13,6 +15,8 @@ pub(crate) mod mock_term {
     impl Term {
         pub fn stdout() -> Self {
             Self {
+                cursor_hidden: true,
+                current_cursor: 0,
                 input: vec![],
                 output: vec![],
                 key_input: VecDeque::new(),
@@ -26,6 +30,14 @@ pub(crate) mod mock_term {
             Ok(())
         }
 
+        pub fn is_cursor_hidden(&self) -> bool {
+            self.cursor_hidden
+        }
+
+        pub fn get_current_cursor(&self) -> usize {
+            self.current_cursor
+        }
+
         pub fn get_input(&self) -> Vec<u8> {
             self.input.clone()
         }
@@ -34,11 +46,13 @@ pub(crate) mod mock_term {
             self.output.clone()
         }
 
-        pub fn show_cursor(&self) -> Result<(), std::io::Error> {
+        pub fn show_cursor(&mut self) -> Result<(), std::io::Error> {
+            self.cursor_hidden = true;
             Ok(())
         }
 
-        pub fn hide_cursor(&self) -> Result<(), std::io::Error> {
+        pub fn hide_cursor(&mut self) -> Result<(), std::io::Error> {
+            self.cursor_hidden = false;
             Ok(())
         }
 
@@ -82,7 +96,7 @@ pub(crate) mod mock_term {
         }
     }
 
-    impl Write for crate::mock_term::mock_term::Term {
+    impl Write for Term {
         fn write(&mut self, buf: &[u8]) -> Result<usize, std::io::Error> {
             self.output.append(&mut buf.to_vec());
 
@@ -119,4 +133,25 @@ pub(crate) mod mock_term {
         PageDown,
         Char(char),
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::mock_term::mock_term::Term;
+
+    #[test]
+    fn test_cursor() {
+        let mut pika = Term::stdout();
+
+        assert!(pika.is_cursor_hidden());
+
+        pika.hide_cursor().unwrap();
+
+        assert_eq!(pika.is_cursor_hidden(), false);
+
+        pika.show_cursor().unwrap();
+
+        assert_eq!(pika.is_cursor_hidden(), true);
+    }
+
 }
