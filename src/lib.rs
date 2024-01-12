@@ -836,7 +836,7 @@ impl CliPrompt {
                 .write(format!("{}", ". ".repeat(spinner_symbol_index + 1)).as_bytes())?;
             self.term.clear_chars(2 * (spinner_symbol_index + 1))?;
 
-            thread::sleep(Duration::from_millis(1000));
+            thread::sleep(Duration::from_millis(500));
             spinner_symbol_index = (spinner_symbol_index + 1) % 4;
 
             match rx.try_recv() {
