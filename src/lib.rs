@@ -760,7 +760,8 @@ impl CliPrompt {
     /// When this functions is called, starts the spinner, spawns a new thread, and call `task`.
     /// Once the `task` is done, the spinner stopped, and prints the complete message.
     ///
-    /// The `task` closure has has two constraints, [`Send`] and `'static`, same as [`thread::spawn`]'s `f` closure
+    /// `timeout` will prevent `task` from running longer than expected.
+    /// The `task` closure has has two constraints, [`Send`] and `'static`, same as [`thread::spawn`]'s `f` closure.
     ///
     /// # Arguments
     ///
