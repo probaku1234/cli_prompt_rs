@@ -48,8 +48,8 @@ use colored::*;
 use console::style;
 #[cfg(not(feature = "mock-term"))]
 use console::{style, Key, Term};
-use std::io::{Result, Write};
 use std::fmt;
+use std::io::{Result, Write};
 use supports_unicode::Stream;
 
 use crate::cli_prompt_error::CliPromptError::{
@@ -60,8 +60,8 @@ use {
     crate::cli_prompt_error::SpinnerError,
     std::sync::mpsc::{self, TryRecvError},
     std::thread,
-    std::time::Duration,
     std::time,
+    std::time::Duration,
 };
 
 fn get_symbol(c: &str, fallback: &str, unicode_support: bool) -> String {
@@ -712,10 +712,7 @@ impl CliPrompt {
         let split_message = note_message.split("\n");
         // get max length of split messages
         let max_length_option = split_message.map(|m| m.len()).max();
-        let max_length = match max_length_option {
-            Some(m) => m,
-            None => 0,
-        };
+        let max_length = max_length_option.unwrap_or_else(|| 0);
 
         // print header
         self.term.write_line(
@@ -725,7 +722,7 @@ impl CliPrompt {
                 self.s_bar_h.repeat(max_length + 2),
                 self.s_corner_top_right
             )
-                .as_str(),
+            .as_str(),
         )?;
         // print message
         for message in note_message.split("\n") {
@@ -738,7 +735,7 @@ impl CliPrompt {
                     " ".repeat(max_length - message_length + 1),
                     self.s_bar
                 )
-                    .as_str(),
+                .as_str(),
             )?;
         }
 
@@ -750,7 +747,7 @@ impl CliPrompt {
                 self.s_bar_h.repeat(max_length + 2),
                 self.s_corner_bottom_right
             )
-                .as_str(),
+            .as_str(),
         )?;
 
         Ok(self.print_empty_line()?)
@@ -830,7 +827,7 @@ impl CliPrompt {
                         .magenta(),
                     message,
                 )
-                    .as_bytes(),
+                .as_bytes(),
             )?;
 
             self.term
@@ -852,12 +849,13 @@ impl CliPrompt {
         };
         // self.term.write_line("")?;
         self.term.clear_line()?;
-        self.term.write_line(format!("{} {}", self.s_success.green(), "Done!").as_str())?;
+        self.term
+            .write_line(format!("{} {}", self.s_success.green(), finish_message).as_str())?;
         self.print_empty_line()?;
 
         match task_join_handler.join() {
             Ok(_) => {}
-            Err(_e) => return Err(CliPromptError::SpinnerError(SpinnerError::TaskFailed))
+            Err(_e) => return Err(CliPromptError::SpinnerError(SpinnerError::TaskFailed)),
         }
         // if !result {
         //     return Err(CliPromptError::SpinnerError(SpinnerError::TaskFailed));
@@ -885,7 +883,7 @@ impl CliPrompt {
                     ),
                     MessageType::Option,
                 )
-                    .as_bytes(),
+                .as_bytes(),
             )?;
         } else {
             self.term.write(
@@ -897,7 +895,7 @@ impl CliPrompt {
                     ),
                     MessageType::Option,
                 )
-                    .as_bytes(),
+                .as_bytes(),
             )?;
         }
 
@@ -1059,8 +1057,8 @@ impl fmt::Display for PromptSelectOption {
 mod tests {
     use super::*;
     use std::collections::HashMap;
-    #[cfg(feature = "unstable")]
-    use std::io::{Error, ErrorKind};
+    // #[cfg(feature = "unstable")]
+    // use std::io::{Error, ErrorKind};
 
     fn build_prefix_map() -> HashMap<String, String> {
         let unicode_support = supports_unicode::on(Stream::Stdout);

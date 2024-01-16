@@ -20,13 +20,9 @@ pub enum CliPromptError {
     /// Indicates an underlying IO Error.
     IoError(io::Error),
     /// The options vec is empty. Used for [`prompt_select`](crate::CliPrompt::prompt_select), [`prompt_multi_select`](crate::CliPrompt::prompt_multi_select)
-    OptionsVecEmptyError {
-        message: String,
-    },
+    OptionsVecEmptyError { message: String },
     /// Used for [`prompt_multi_select_with_max_choice_num`](crate::CliPrompt::prompt_multi_select_with_max_choice_num)
-    InvalidMaxChoiceNumError {
-        message: String,
-    },
+    InvalidMaxChoiceNumError { message: String },
     /// Indicates an underlying Spinner Error.
     SpinnerError(SpinnerError),
 }
