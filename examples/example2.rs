@@ -9,12 +9,17 @@ fn main() {
     cli_prompt
         .print_note("This example shows how to use spinner feature")
         .unwrap();
-    let task = || {
-        thread::sleep(time::Duration::from_millis(5000));
-    };
-    cli_prompt
-        .call_spinner("working", "Done!", 10000, task)
-        .unwrap();
+
+    // wrap it with unstable feature to prevent build failure without unstable feature
+    #[cfg(feature = "unstable")]
+    {
+        let task = || {
+            thread::sleep(time::Duration::from_millis(5000));
+        };
+        cli_prompt
+            .call_spinner("working", "Done!", 10000, task)
+            .unwrap();
+    }
 
     cli_prompt.outro("Good Bye").unwrap();
 }
