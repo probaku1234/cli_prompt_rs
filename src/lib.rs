@@ -762,7 +762,8 @@ impl CliPrompt {
     ///
     /// # Arguments
     ///
-    /// * `message` - the loading message
+    /// * `loading_message` - the loading message
+    /// * `finish_message` - the finish message that printed when `task` is done
     /// * `timeout` - the time limit in milliseconds
     /// * `task` - the closure that runs in thread, while spinner is running
     ///
@@ -780,19 +781,20 @@ impl CliPrompt {
     /// let pika = || {
     ///     thread::sleep(time::Duration::from_millis(500));
     /// };
-    /// cli_prompt.call_spinner("loading", 5000, pika).unwrap();
+    /// cli_prompt.call_spinner("loading", "Done!", 5000, pika).unwrap();
     /// ```
     #[cfg(feature = "unstable")]
     #[cfg_attr(feature = "docs", doc(cfg(unstable)))]
     pub fn call_spinner<F, T>(
         &mut self,
-        message: &str,
+        loading_message: &str,
+        finish_message: &str,
         timeout: u64,
         mut task: F,
     ) -> std::result::Result<(), CliPromptError>
-        where
-            F: FnMut() -> T,
-            F: Send + 'static,
+    where
+        F: FnMut() -> T,
+        F: Send + 'static,
     {
         // TODO: thread error handle?
         // TODO: show result?
@@ -825,7 +827,7 @@ impl CliPrompt {
                     self.s_spinner_frames[spinner_symbol_index]
                         .clone()
                         .magenta(),
-                    message,
+                    loading_message,
                 )
                 .as_bytes(),
             )?;
@@ -1586,7 +1588,7 @@ mod tests {
             thread::sleep(time::Duration::from_millis(5000));
             Ok(())
         };
-        let result = cli_prompt.call_spinner("", 1000, pika).unwrap_err();
+        let result = cli_prompt.call_spinner("", "", 1000, pika).unwrap_err();
 
         assert_eq!("TimedOut".to_string(), result.to_string());
     }
@@ -1614,7 +1616,7 @@ mod tests {
             thread::sleep(time::Duration::from_millis(1000));
             Ok(())
         };
-        let result = cli_prompt.call_spinner("", 5000, pika);
+        let result = cli_prompt.call_spinner("", "", 5000, pika);
 
         assert!(result.is_ok());
     }
