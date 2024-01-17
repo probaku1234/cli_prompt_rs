@@ -5,7 +5,7 @@ use std::fmt::{Debug, Display, Formatter};
 use std::io;
 // TODO: add doc
 
-/// A list specifying categories of error returned from [`call_spinner`](crate::CliPrompt::call_spinner)
+/// A list specifying categories of error returned from [`call_spinner`](crate::CliPrompt::run_with_spinner)
 #[derive(Debug)]
 pub enum SpinnerError {
     /// This error will be returned when`task` is not finished within given time.

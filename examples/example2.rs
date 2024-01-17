@@ -17,7 +17,7 @@ fn main() {
             thread::sleep(time::Duration::from_millis(5000));
         };
         cli_prompt
-            .call_spinner("working", "Done!", 10000, task)
+            .run_with_spinner("working", "Done!", 10000, task)
             .unwrap();
     }
 

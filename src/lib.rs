@@ -781,11 +781,11 @@ impl CliPrompt {
     /// let pika = || {
     ///     thread::sleep(time::Duration::from_millis(500));
     /// };
-    /// cli_prompt.call_spinner("loading", "Done!", 5000, pika).unwrap();
+    /// cli_prompt.run_with_spinner("loading", "Done!", 5000, pika).unwrap();
     /// ```
     #[cfg(feature = "unstable")]
     #[cfg_attr(feature = "docs", doc(cfg(unstable)))]
-    pub fn call_spinner<F, T>(
+    pub fn run_with_spinner<F, T>(
         &mut self,
         loading_message: &str,
         finish_message: &str,
@@ -798,6 +798,7 @@ impl CliPrompt {
     {
         // TODO: thread error handle?
         // TODO: show result?
+        // TODO: come up better function name
         let now = time::Instant::now();
         let mut spinner_symbol_index = 0;
         let (tx, rx) = mpsc::channel::<bool>();
@@ -1588,7 +1589,7 @@ mod tests {
             thread::sleep(time::Duration::from_millis(5000));
             Ok(())
         };
-        let result = cli_prompt.call_spinner("", "", 1000, pika).unwrap_err();
+        let result = cli_prompt.run_with_spinner("", "", 1000, pika).unwrap_err();
 
         assert_eq!("TimedOut".to_string(), result.to_string());
     }
@@ -1616,7 +1617,7 @@ mod tests {
             thread::sleep(time::Duration::from_millis(1000));
             Ok(())
         };
-        let result = cli_prompt.call_spinner("", "", 5000, pika);
+        let result = cli_prompt.run_with_spinner("", "", 5000, pika);
 
         assert!(result.is_ok());
     }
