@@ -347,4 +347,39 @@ mod tests {
         assert_eq!(mock_term.get_output_string(), "qweqwe   aaa\naaqxxxxxx");
         assert_eq!(mock_term.get_current_cursor(), (1, 2));
     }
+
+    #[test]
+    fn test_get_output() {
+        let initial_output: Vec<Vec<u8>> = vec![b"qweqwe".to_vec(), b"qqqxxxxxx".to_vec()];
+        let mut mock_term = Term::stdout_with_output_and_cursor(initial_output, (1, 9));
+
+        let output = mock_term.get_output();
+
+        assert_eq!(output, vec![b"qweqwe".to_vec(), b"qqqxxxxxx".to_vec()]);
+    }
+
+    #[test]
+    fn test_flush() {
+        let mut mock_term = Term::stdout();
+
+        assert!(mock_term.flush().is_ok());
+    }
+
+    #[test]
+    fn test_get_output_string_empty_output() {
+        let mut mock_term = Term::stdout();
+
+        assert_eq!(mock_term.get_output_string(), "");
+    }
+
+    #[test]
+    fn test_read_line() {
+        let mut mock_term = Term::stdout();
+        mock_term.input = b"asdfasdf".to_vec();
+
+        let read_result = mock_term.read_line();
+
+        assert!(read_result.is_ok());
+        assert_eq!(read_result.unwrap(), "asdfasdf");
+    }
 }
