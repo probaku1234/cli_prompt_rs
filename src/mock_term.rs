@@ -194,7 +194,7 @@ pub(crate) mod mock_term {
     }
 
     #[allow(dead_code)]
-    #[derive(PartialEq, Eq, Hash)]
+    #[derive(PartialEq, Eq, Hash, Debug)]
     pub enum Key {
         Unknown,
         /// Unrecognized sequence containing Esc and a list of chars
@@ -222,8 +222,10 @@ pub(crate) mod mock_term {
 
 #[cfg(test)]
 mod tests {
-    use crate::mock_term::mock_term::Term;
+    use crate::mock_term::mock_term::{Term, Key};
     use std::io::Write;
+
+    use super::mock_term;
 
     #[test]
     fn test_initial_output() {
@@ -234,6 +236,18 @@ mod tests {
             mock_term.get_output(),
             vec![b"qweqwe".to_vec(), b"qqq".to_vec(),]
         );
+    }
+
+    #[test]
+    fn test_initial_output_and_cursor() {
+        let initial_output: Vec<Vec<u8>> = vec![b"qweqwe".to_vec(), b"qqq".to_vec()];
+        let mock_term = Term::stdout_with_output_and_cursor(initial_output, (0, 0));
+
+        assert_eq!(
+            mock_term.get_output(),
+            vec![b"qweqwe".to_vec(), b"qqq".to_vec(),]
+        );
+        assert_eq!(mock_term.get_current_cursor(), (0,0));
     }
 
     #[test]
@@ -351,7 +365,7 @@ mod tests {
     #[test]
     fn test_get_output() {
         let initial_output: Vec<Vec<u8>> = vec![b"qweqwe".to_vec(), b"qqqxxxxxx".to_vec()];
-        let mut mock_term = Term::stdout_with_output_and_cursor(initial_output, (1, 9));
+        let mock_term = Term::stdout_with_output_and_cursor(initial_output, (1, 9));
 
         let output = mock_term.get_output();
 
@@ -367,7 +381,7 @@ mod tests {
 
     #[test]
     fn test_get_output_string_empty_output() {
-        let mut mock_term = Term::stdout();
+        let mock_term = Term::stdout();
 
         assert_eq!(mock_term.get_output_string(), "");
     }
@@ -381,5 +395,44 @@ mod tests {
 
         assert!(read_result.is_ok());
         assert_eq!(read_result.unwrap(), "asdfasdf");
+    }
+
+    #[test]
+    fn test_read_key_empty_input() {
+        let mut mock_term = Term::stdout();
+        
+        assert!(mock_term.key_input.is_empty());
+
+        let read_key_result = mock_term.read_key();
+
+        assert!(read_key_result.is_ok());
+        assert_eq!(read_key_result.unwrap(), Key::Enter);
+    }
+
+    #[test]
+    fn test_read_key() {
+        let mut mock_term = Term::stdout();
+
+        mock_term.key_input.push_back("arrow left".to_string());
+        mock_term.key_input.push_back("arrow right".to_string());
+        mock_term.key_input.push_back("arrow down".to_string());
+        mock_term.key_input.push_back("arrow up".to_string());
+        mock_term.key_input.push_back("enter".to_string());
+        mock_term.key_input.push_back("asmqwelmasmd".to_string());
+
+        let mut read_key_result_vec = vec![];
+
+        for _ in 0..6 {
+            read_key_result_vec.push(mock_term.read_key().unwrap());
+        }
+
+        assert_eq!(read_key_result_vec, vec![
+            Key::ArrowLeft,
+            Key::ArrowRight,
+            Key::ArrowDown,
+            Key::ArrowUp,
+            Key::Enter,
+            Key::Unknown,
+        ]);
     }
 }
