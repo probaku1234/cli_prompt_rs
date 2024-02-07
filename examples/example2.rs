@@ -1,4 +1,5 @@
 use cli_prompts_rs::CliPrompt;
+#[cfg(feature = "unstable")]
 use std::{thread, time};
 
 fn main() {
