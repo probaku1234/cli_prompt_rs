@@ -225,8 +225,6 @@ mod tests {
     use crate::mock_term::mock_term::{Term, Key};
     use std::io::Write;
 
-    use super::mock_term;
-
     #[test]
     fn test_initial_output() {
         let initial_output: Vec<Vec<u8>> = vec![b"qweqwe".to_vec(), b"qqq".to_vec()];
@@ -243,6 +241,7 @@ mod tests {
         let initial_output: Vec<Vec<u8>> = vec![b"qweqwe".to_vec(), b"qqq".to_vec()];
         let mock_term = Term::stdout_with_output_and_cursor(initial_output, (0, 0));
 
+        assert_eq!(mock_term.get_current_cursor(), (0,0));
         assert_eq!(
             mock_term.get_output(),
             vec![b"qweqwe".to_vec(), b"qqq".to_vec(),]
@@ -434,5 +433,19 @@ mod tests {
             Key::Enter,
             Key::Unknown,
         ]);
+    }
+
+    #[test]
+    fn test_clear_chars() {
+        let mock_term = Term::stdout();
+
+        assert!(mock_term.clear_chars(0).is_ok());
+    }
+
+    #[test]
+    fn test_clear_line() {
+        let mock_term = Term::stdout();
+
+        assert!(mock_term.clear_line().is_ok());
     }
 }
