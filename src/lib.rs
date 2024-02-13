@@ -281,7 +281,7 @@ impl CliPrompt {
         Ok(line.trim().to_string())
     }
 
-    /// Prints the prompt message and let users to choose either yes or no.
+    /// Prints the prompt message and let users choose either yes or no.
     /// Users can change the selection by Arrow Left and Arrow Right key
     /// and choose the selection by Enter key.
     ///
@@ -340,7 +340,7 @@ impl CliPrompt {
         return Ok(choice == 1);
     }
 
-    /// Prints the prompt message and let users to choose one among the provided options.
+    /// Prints the prompt message and let users choose one among the provided options.
     /// Users can change the selection by Arrow Up and Arrow down key
     /// and choose the selection by Enter key.
     ///
@@ -353,7 +353,7 @@ impl CliPrompt {
     ///
     /// # Errors
     ///
-    /// If `options` is empty, [`OptionsVecEmptyError`](CliPromptError::OptionsVecEmptyError) will be returned.
+    /// If `options` is empty, [`OptionsVecEmptyError`](OptionsVecEmptyError) will be returned.
     ///
     /// ```
     /// use cli_prompts_rs::{CliPrompt, PromptSelectOption};
@@ -446,7 +446,7 @@ impl CliPrompt {
         Ok(options.get(choice).unwrap().clone())
     }
 
-    /// Prints the prompt message and let users to choose multiple options among the provided ones.
+    /// Prints the prompt message and let users choose multiple options among the provided ones.
     /// Users can change the selection by Arrow Up and Arrow down key
     /// and choose the selection by Enter key.
     ///
@@ -473,7 +473,7 @@ impl CliPrompt {
     ///
     /// # Errors
     ///
-    /// If `options` is empty, [`OptionsVecEmptyError`](CliPromptError::OptionsVecEmptyError) will be returned.
+    /// If `options` is empty, [`OptionsVecEmptyError`](OptionsVecEmptyError) will be returned.
     ///
     /// ```
     /// use cli_prompts_rs::{CliPrompt, PromptSelectOption};
@@ -507,7 +507,7 @@ impl CliPrompt {
         self.prompt_multi_select_with_max_choice_num(message, options, options_len)
     }
 
-    /// Prints the prompt message and let users to choose multiple options among the provided ones.
+    /// Prints the prompt message and let users choose multiple options among the provided ones.
     /// Users can select up to `max_choice_num` from the options.
     /// Users can change the selection by Arrow Up and Arrow down key
     /// and choose the selection by Enter key.
@@ -522,7 +522,7 @@ impl CliPrompt {
     ///
     /// # Errors
     ///
-    /// If `options` is empty, [`OptionsVecEmptyError`](CliPromptError::OptionsVecEmptyError) will be returned.
+    /// If `options` is empty, [`OptionsVecEmptyError`](OptionsVecEmptyError) will be returned.
     ///
     /// ```
     /// use cli_prompts_rs::{CliPrompt, PromptSelectOption};
@@ -534,7 +534,7 @@ impl CliPrompt {
     /// assert!(result.is_err());
     /// ```
     ///
-    /// If `max_choice_num` is zero or greater than length of `options`, [`InvalidMaxChoiceNumber`](CliPromptError::InvalidMaxChoiceNumError) will be returned.
+    /// If `max_choice_num` is zero or greater than length of `options`, [`InvalidMaxChoiceNumber`](InvalidMaxChoiceNumError) will be returned.
     /// ```
     /// use cli_prompts_rs::{CliPrompt, PromptSelectOption};
     ///
@@ -566,7 +566,7 @@ impl CliPrompt {
     /// println!("{:?}", selected_options);
     /// ```
     ///
-    /// With empty `options`, it will return [`OptionsVecEmptyError`](CliPromptError::OptionsVecEmptyError).
+    /// With empty `options`, it will return [`OptionsVecEmptyError`](OptionsVecEmptyError).
     pub fn prompt_multi_select_with_max_choice_num(
         &mut self,
         message: &str,
@@ -754,11 +754,12 @@ impl CliPrompt {
     }
 
     /// Displays spinner while waiting for the `task` to finish.
-    /// When this functions is called, starts the spinner, spawns a new thread, and call `task`.
+    /// When this function is called, starts the spinner, spawns a new thread, and call `task`.
     /// Once the `task` is done, the spinner stopped, and prints the complete message.
     ///
-    /// `timeout` will prevent `task` from running longer than expected.
-    /// The `task` closure has has two constraints, [`Send`] and `'static`, same as [`thread::spawn`]'s `f` closure.
+    /// `timeout` is used to set maximum time for task to run.
+    ///
+    /// Since `task` is called inside a thread, It has two constraints, [`Send`] and `'static`, same as [`thread::spawn`]'s `f` closure.
     ///
     /// # Arguments
     ///
@@ -818,7 +819,7 @@ impl CliPrompt {
         });
 
         let _result = loop {
-            if now.elapsed() >= time::Duration::from_millis(timeout) {
+            if now.elapsed() >= Duration::from_millis(timeout) {
                 return Err(CliPromptError::SpinnerError(SpinnerError::TimedOut));
             }
 
@@ -1585,8 +1586,8 @@ mod tests {
     fn test_spinner_timeout() {
         let mut cli_prompt = CliPrompt::new();
 
-        let pika = || -> std::io::Result<()> {
-            thread::sleep(time::Duration::from_millis(5000));
+        let pika = || -> Result<()> {
+            thread::sleep(Duration::from_millis(5000));
             Ok(())
         };
         let result = cli_prompt.run_with_spinner("", "", 1000, pika).unwrap_err();
@@ -1613,8 +1614,8 @@ mod tests {
     fn test_spinner() {
         let mut cli_prompt = CliPrompt::new();
 
-        let pika = || -> std::io::Result<()> {
-            thread::sleep(time::Duration::from_millis(1000));
+        let pika = || -> Result<()> {
+            thread::sleep(Duration::from_millis(1000));
             Ok(())
         };
         let result = cli_prompt.run_with_spinner("", "", 5000, pika);
