@@ -6,7 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.2](https://github.com/probaku1234/cli_prompt_rs/compare/v0.1.1...v0.1.2) - 2023-10-11
+## [0.3.0](https://github.com/probaku1234/cli_prompt_rs/compare/v0.2.0...v0.3.0) - 2024-02-13
+
+### Added
+- add spinner functionality
+- add new example for spinner functionality
+- implement prompt_multi_selected_with_max_num
+- implement custom error for entire lib
+
+### Breaking Changes
+- All functions now return CliPromptError as Error type
+
+## [0.2.0](https://github.com/probaku1234/cli_prompt_rs/compare/v0.1.1...v0.2.0) - 2023-10-11
 
 ### Added
 - add prompt_multi_select
